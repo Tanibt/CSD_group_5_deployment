@@ -9,10 +9,6 @@ import java.time.LocalDateTime;
 import java.util.HashMap;
 import java.util.Map;
 
-/**
- * Health Check Controller
- * Use this to verify that your API is running correctly
- */
 @RestController
 @RequestMapping("/api/health")
 public class HealthController {

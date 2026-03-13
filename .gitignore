@@ -63,3 +63,4 @@ package-lock.json
 src/main/java/com/genbridge/frontend/node_modules/
 src/main/java/com/genbridge/frontend/dist/
 src/main/java/com/genbridge/frontend/.vite/
+src/main/java/com/genbridge/frontend/vite.config.ts.timestamp-*.mjs
