@@ -43,7 +43,7 @@ export default function Admin() {
 
   if (role !== "ADMIN") return <Navigate to="/learn" replace />;
 
-  const [tab, setTab] = useState<"lessons" | "content">("lessons");
+  const [tab, setTab] = useState<"lessons" | "content" | "quiz">("lessons");
   const [lessons, setLessons] = useState<Lesson[]>([]);
   const [loadingLessons, setLoadingLessons] = useState(true);
 
@@ -79,6 +79,24 @@ export default function Admin() {
 
   const [lessonForm, setLessonForm] = useState(emptyLessonForm);
   const [contentForm, setContentForm] = useState(emptyContentForm);
+
+  // ================= QUIZ STATE =================
+  const [quizQuestions, setQuizQuestions] = useState<any[]>([]);
+  const [loadingQuiz, setLoadingQuiz] = useState(false);
+  const [quizLessonId, setQuizLessonId] = useState<number | null>(null);
+
+  const [quizModalOpen, setQuizModalOpen] = useState(false);
+  const [savingQuiz, setSavingQuiz] = useState(false);
+
+  const emptyQuizForm = {
+    questionText: "",
+    options: ["", "", "", ""],
+    correctIndex: 0,
+    explanation: "",
+  };
+
+  const [quizForm, setQuizForm] = useState(emptyQuizForm);
+  // ==============================================
 
   // Scroll to top when tab changes
   useEffect(() => {
@@ -122,6 +140,20 @@ export default function Admin() {
       setLoadingContent(false);
     }
   };
+
+  // ================= LOAD QUIZ =================
+  const loadQuiz = async (lessonId: number) => {
+    setLoadingQuiz(true);
+    try {
+      const res = await api.get(`/lessons/${lessonId}/quiz`);
+      setQuizQuestions(res.data);
+    } catch {
+      toast({ title: "Error loading quiz" });
+    } finally {
+      setLoadingQuiz(false);
+    }
+  };
+  // =============================================
 
   // Validate lesson
   const validateLesson = () => {
@@ -212,6 +244,39 @@ export default function Admin() {
     }
   };
 
+  // ================= SAVE QUIZ =================
+  const saveQuiz = async () => {
+    if (!quizLessonId) {
+      toast({ title: "Select a lesson first" });
+      return;
+    }
+
+    if (!quizForm.questionText.trim()) {
+      toast({ title: "Question text required" });
+      return;
+    }
+
+    if (quizForm.options.some((o) => !o.trim())) {
+      toast({ title: "All 4 options required" });
+      return;
+    }
+
+    setSavingQuiz(true);
+
+    try {
+      await api.post(`/lessons/${quizLessonId}/quiz`, quizForm);
+      toast({ title: "Question added successfully" });
+      setQuizModalOpen(false);
+      setQuizForm(emptyQuizForm);
+      loadQuiz(quizLessonId);
+    } catch {
+      toast({ title: "Error saving question" });
+    } finally {
+      setSavingQuiz(false);
+    }
+  };
+  // =============================================
+
   const deleteLesson = async (id: number) => {
     if (!confirm("Delete this lesson?")) return;
     await api.delete(`/lessons/${id}`);
@@ -254,6 +319,13 @@ export default function Admin() {
               onClick={() => setTab("content")}
             >
               Content
+            </Button>
+
+            <Button
+              variant={tab === "quiz" ? "default" : "outline"}
+              onClick={() => setTab("quiz")}
+            >
+              Quiz
             </Button>
           </div>
 
@@ -436,6 +508,85 @@ export default function Admin() {
             </>
           )}
 
+          {/* QUIZ TAB */}
+          {tab === "quiz" && (
+            <>
+              <div className="mb-6">
+                <select
+                  className="w-full border rounded-md p-2"
+                  value={quizLessonId ?? ""}
+                  onChange={(e) => {
+                    const id = Number(e.target.value);
+                    setQuizLessonId(id);
+                    if (id) loadQuiz(id);
+                  }}
+                >
+                  <option value="">Select lesson</option>
+                  {lessons.map((lesson) => (
+                    <option key={lesson.id} value={lesson.id}>
+                      {lesson.title}
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              {!quizLessonId ?
+                <div className="flex flex-col items-center justify-center py-20 text-center">
+                  <h3 className="text-lg font-semibold mb-2">
+                    No lesson selected
+                  </h3>
+                  <p className="text-muted-foreground text-sm max-w-sm">
+                    Please select a lesson to manage its quiz.
+                  </p>
+                </div>
+              : <>
+                  <Button
+                    className="mb-6"
+                    onClick={() => {
+                      setQuizForm(emptyQuizForm);
+                      setQuizModalOpen(true);
+                    }}
+                  >
+                    + Add Question
+                  </Button>
+
+                  {loadingQuiz ?
+                    <p>Loading quiz...</p>
+                  : quizQuestions.length === 0 ?
+                    <p className="text-muted-foreground">
+                      No quiz questions added yet.
+                    </p>
+                  : <div className="space-y-4">
+                      {quizQuestions.map((q) => (
+                        <motion.div
+                          key={q.id}
+                          whileHover={{ scale: 1.01 }}
+                          className="border rounded-xl p-5 bg-card shadow-sm"
+                        >
+                          <h3 className="font-semibold mb-2">
+                            {q.questionText}
+                          </h3>
+
+                          <ul className="text-sm text-muted-foreground mb-3">
+                            {q.options.map((opt: string, i: number) => (
+                              <li key={i}>
+                                {i}. {opt}
+                              </li>
+                            ))}
+                          </ul>
+
+                          <p className="text-xs text-muted-foreground">
+                            Explanation: {q.explanation}
+                          </p>
+                        </motion.div>
+                      ))}
+                    </div>
+                  }
+                </>
+              }
+            </>
+          )}
+
           {/* LESSON MODAL */}
           <Dialog open={lessonModalOpen} onOpenChange={setLessonModalOpen}>
             <DialogContent>
@@ -558,6 +709,70 @@ export default function Admin() {
                   className="w-full"
                 >
                   {savingContent ? "Saving..." : "Save"}
+                </Button>
+              </div>
+            </DialogContent>
+          </Dialog>
+
+          {/* QUIZ MODAL */}
+          <Dialog open={quizModalOpen} onOpenChange={setQuizModalOpen}>
+            <DialogContent>
+              <DialogHeader>
+                <DialogTitle>Add Quiz Question</DialogTitle>
+              </DialogHeader>
+
+              <div className="space-y-4 mt-4">
+                <Textarea
+                  placeholder="Question Text"
+                  value={quizForm.questionText}
+                  onChange={(e) =>
+                    setQuizForm({ ...quizForm, questionText: e.target.value })
+                  }
+                />
+
+                {quizForm.options.map((opt, index) => (
+                  <Input
+                    key={index}
+                    placeholder={`Option ${index + 1}`}
+                    value={opt}
+                    onChange={(e) => {
+                      const newOptions = [...quizForm.options];
+                      newOptions[index] = e.target.value;
+                      setQuizForm({ ...quizForm, options: newOptions });
+                    }}
+                  />
+                ))}
+
+                <select
+                  className="w-full border rounded-md p-2"
+                  value={quizForm.correctIndex}
+                  onChange={(e) =>
+                    setQuizForm({
+                      ...quizForm,
+                      correctIndex: Number(e.target.value),
+                    })
+                  }
+                >
+                  <option value={0}>Correct: Option 1</option>
+                  <option value={1}>Correct: Option 2</option>
+                  <option value={2}>Correct: Option 3</option>
+                  <option value={3}>Correct: Option 4</option>
+                </select>
+
+                <Textarea
+                  placeholder="Explanation"
+                  value={quizForm.explanation}
+                  onChange={(e) =>
+                    setQuizForm({ ...quizForm, explanation: e.target.value })
+                  }
+                />
+
+                <Button
+                  onClick={saveQuiz}
+                  disabled={savingQuiz}
+                  className="w-full"
+                >
+                  {savingQuiz ? "Saving..." : "Save Question"}
                 </Button>
               </div>
             </DialogContent>
