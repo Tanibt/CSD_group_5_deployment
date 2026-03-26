@@ -41,6 +41,14 @@ public class QuizController {
         return ResponseEntity.status(HttpStatus.CREATED).body(quizService.createQuizQuestion(lessonId, request));
     }
 
+    @PostMapping("/submit")
+    public ResponseEntity<Map<String, Object>> submitQuiz(@PathVariable("id") Long lessonId,
+                                                          @Valid @RequestBody SubmitQuizRequest request,
+                                                          Authentication authentication) {
+        User user = (User) authentication.getPrincipal();
+        return ResponseEntity.ok(quizService.submitQuiz(lessonId, request, user));
+    }
+
     @PostMapping("/{questionId}/answer")
     public ResponseEntity<Map<String, Object>> answerQuestion(@PathVariable("id") Long lessonId,
                                                                @PathVariable Long questionId,

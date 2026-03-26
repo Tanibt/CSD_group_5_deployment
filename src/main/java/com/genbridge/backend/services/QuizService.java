@@ -110,7 +110,7 @@ public class QuizService {
         quizAttemptRepository.save(attempt);
 
         updateLessonProgressStatus(user.getId(), lessonId);
-        userService.updateStreak(user, allAnswersCorrect);
+        userService.updateStreak(user);
 
         Map<String, Object> result = new HashMap<>();
         result.put("lessonId", lessonId);
@@ -144,7 +144,7 @@ public class QuizService {
         attempt.setCorrectAnswers(isCorrect ? 1 : 0);
         quizAttemptRepository.save(attempt);
 
-        userService.updateStreak(user, isCorrect);
+        userService.updateStreak(user);
         boolean completed = updateLessonProgressStatus(user.getId(), lessonId);
 
         Map<String, Object> response = new HashMap<>();

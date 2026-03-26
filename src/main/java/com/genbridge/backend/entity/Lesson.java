@@ -1,12 +1,6 @@
 package com.genbridge.backend.entity;
 
-import jakarta.persistence.Column;
-import jakarta.persistence.Entity;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
-import jakarta.persistence.Table;
-
+import jakarta.persistence.*;
 import java.time.LocalDateTime;
 
 @Entity
@@ -17,56 +11,51 @@ public class Lesson {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(nullable = false, length = 150)
+    @Column(nullable = false, length = 200)
     private String title;
 
-    @Column(nullable = false, columnDefinition = "TEXT")
+    @Column(columnDefinition = "TEXT")
     private String description;
 
-    @Column(name = "order_index", nullable = false)
-    private int orderIndex;
+    @Column(nullable = false, length = 50)
+    private String difficulty;
+
+    @Column(columnDefinition = "TEXT")
+    private String objective;
+
+    @Column(nullable = false)
+    private boolean published = false;
+
+    @Column(name = "published_at")
+    private LocalDateTime publishedAt;
+
+    @Column(name = "created_by")
+    private String createdBy;
 
     @Column(name = "created_at", nullable = false, updatable = false)
     private LocalDateTime createdAt = LocalDateTime.now();
 
-    public Lesson() {
-    }
+    @Column(name = "updated_at", nullable = false)
+    private LocalDateTime updatedAt = LocalDateTime.now();
 
-    public Lesson(String title, String description, int orderIndex) {
-        this.title = title;
-        this.description = description;
-        this.orderIndex = orderIndex;
-    }
+    public Lesson() {}
 
-    public Long getId() {
-        return id;
-    }
-
-    public String getTitle() {
-        return title;
-    }
-
-    public void setTitle(String title) {
-        this.title = title;
-    }
-
-    public String getDescription() {
-        return description;
-    }
-
-    public void setDescription(String description) {
-        this.description = description;
-    }
-
-    public int getOrderIndex() {
-        return orderIndex;
-    }
-
-    public void setOrderIndex(int orderIndex) {
-        this.orderIndex = orderIndex;
-    }
-
-    public LocalDateTime getCreatedAt() {
-        return createdAt;
-    }
+    public Long getId() { return id; }
+    public String getTitle() { return title; }
+    public void setTitle(String title) { this.title = title; }
+    public String getDescription() { return description; }
+    public void setDescription(String description) { this.description = description; }
+    public String getDifficulty() { return difficulty; }
+    public void setDifficulty(String difficulty) { this.difficulty = difficulty; }
+    public String getObjective() { return objective; }
+    public void setObjective(String objective) { this.objective = objective; }
+    public boolean isPublished() { return published; }
+    public void setPublished(boolean published) { this.published = published; }
+    public LocalDateTime getPublishedAt() { return publishedAt; }
+    public void setPublishedAt(LocalDateTime publishedAt) { this.publishedAt = publishedAt; }
+    public String getCreatedBy() { return createdBy; }
+    public void setCreatedBy(String createdBy) { this.createdBy = createdBy; }
+    public LocalDateTime getCreatedAt() { return createdAt; }
+    public LocalDateTime getUpdatedAt() { return updatedAt; }
+    public void setUpdatedAt(LocalDateTime updatedAt) { this.updatedAt = updatedAt; }
 }

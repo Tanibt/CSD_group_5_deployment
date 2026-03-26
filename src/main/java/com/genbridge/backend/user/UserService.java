@@ -56,16 +56,24 @@ public class UserService {
     }
 
     @Transactional
-    public void updateStreak(User user, boolean allAnswersCorrect) {
-        int currentStreak = user.getCurrentStreak();
+    public void updateStreak(User user) {
+        LocalDate today = LocalDate.now();
+        LocalDate lastActive = user.getLastActiveDate();
 
-        if (allAnswersCorrect) {
-            user.setCurrentStreak(currentStreak + 1);
+        if (lastActive == null) {
+            // First activity ever
+            user.setCurrentStreak(1);
+        } else if (lastActive.equals(today)) {
+            // Already active today — no change
+        } else if (lastActive.equals(today.minusDays(1))) {
+            // Active yesterday — extend streak
+            user.setCurrentStreak(user.getCurrentStreak() + 1);
         } else {
-            user.setCurrentStreak(0);
+            // Gap of more than 1 day — reset streak
+            user.setCurrentStreak(1);
         }
 
-        user.setLastActiveDate(LocalDate.now());
+        user.setLastActiveDate(today);
         userRepository.save(user);
     }
 }

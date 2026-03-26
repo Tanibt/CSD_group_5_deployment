@@ -4,14 +4,11 @@ import com.genbridge.backend.entity.Content;
 import com.genbridge.backend.entity.Lesson;
 import com.genbridge.backend.repository.ContentRepository;
 import com.genbridge.backend.repository.LessonRepository;
-import org.springframework.boot.ApplicationArguments;
-import org.springframework.boot.ApplicationRunner;
+import org.springframework.boot.CommandLineRunner;
 import org.springframework.stereotype.Component;
 
-import java.util.List;
-
 @Component
-public class ContentSeeder implements ApplicationRunner {
+public class ContentSeeder implements CommandLineRunner {
 
     private final LessonRepository lessonRepository;
     private final ContentRepository contentRepository;
@@ -22,47 +19,82 @@ public class ContentSeeder implements ApplicationRunner {
     }
 
     @Override
-    public void run(ApplicationArguments args) {
+    public void run(String... args) {
         if (lessonRepository.count() > 0) {
-            return;
+            return; // Already seeded
         }
 
-        Lesson lesson1 = lessonRepository.save(new Lesson(
-                "What is Gen Alpha?",
-                "Introduction to Gen Alpha values, behavior and digital culture.",
-                1
-        ));
+        // Lesson 1: Rizz, Sigma & Skibidi
+        Lesson lesson1 = new Lesson();
+        lesson1.setTitle("Rizz, Sigma & Skibidi");
+        lesson1.setDescription("Decode the most iconic Gen-Alpha slang terms that took over the internet.");
+        lesson1.setDifficulty("BEGINNER");
+        lesson1.setObjective("Understand the meaning and usage of core Gen-Alpha slang words like rizz, sigma, and skibidi.");
+        lesson1.setPublished(true);
+        lesson1 = lessonRepository.save(lesson1);
 
-        Lesson lesson2 = lessonRepository.save(new Lesson(
-                "Social Media Trends",
-                "How short-form content, creators and online communities shape trends.",
-                2
-        ));
+        addContent(lesson1.getId(), "Rizz", "Rizz",
+                "Natural charm or charisma, especially the ability to attract others effortlessly.",
+                "\"He walked in and instantly had rizz — everyone wanted to talk to him.\"", 1);
+        addContent(lesson1.getId(), "Sigma", "Sigma",
+                "A person who is self-reliant, independent, and successful without needing social validation. Often used ironically.",
+                "\"He doesn't care what anyone thinks — total sigma grindset.\"", 2);
+        addContent(lesson1.getId(), "Skibidi", "Skibidi",
+                "Originally from a viral YouTube series; used to describe something nonsensical, chaotic, or just as filler slang.",
+                "\"That test was so skibidi, I had no idea what was going on.\"", 3);
+        addContent(lesson1.getId(), "Gyatt", "Gyatt",
+                "An exclamation of surprise or admiration, often used when someone is impressed by a person's appearance.",
+                "\"Gyatt, did you see that outfit?\"", 4);
 
-        Lesson lesson3 = lessonRepository.save(new Lesson(
-                "Digital Wellbeing",
-                "Healthy screen habits, boundaries and balanced online activity.",
-                3
-        ));
+        // Lesson 2: No Cap, Bussin & Slay
+        Lesson lesson2 = new Lesson();
+        lesson2.setTitle("No Cap, Bussin & Slay");
+        lesson2.setDescription("Master the everyday expressions Gen-Alpha uses to react, agree, and hype each other up.");
+        lesson2.setDifficulty("BEGINNER");
+        lesson2.setObjective("Learn how to use popular Gen-Alpha reaction words and affirmations in conversation.");
+        lesson2.setPublished(true);
+        lesson2 = lessonRepository.save(lesson2);
 
-        List<Content> seedContent = List.of(
-                createContent(lesson1.getId(), "Gen Alpha", "Gen Alpha", "People born from around 2010 onward.", "Raised fully in the digital era.", 1),
-                createContent(lesson1.getId(), "Digital Native", "Digital Native", "Someone who grows up with digital tech as normal.", "Uses apps naturally from a young age.", 2),
-                createContent(lesson2.getId(), "Short-form Video", "Short-form", "Video content that is brief and highly engaging.", "15-60 second trend videos.", 1),
-                createContent(lesson2.getId(), "Creator Economy", "Creator", "A system where creators monetize content and communities.", "Influencer courses, live gifts, brand deals.", 2),
-                createContent(lesson3.getId(), "Screen Time", "Screen Time", "The amount of time spent using digital screens.", "Tracking daily app usage.", 1),
-                createContent(lesson3.getId(), "Digital Balance", "Balance", "Combining online and offline life in a healthy way.", "Taking breaks and doing offline hobbies.", 2)
-        );
+        addContent(lesson2.getId(), "No Cap", "No Cap",
+                "Means \"no lie\" or \"for real\" — used to emphasise that you are being completely honest.",
+                "\"That movie was the best I've ever seen, no cap.\"", 1);
+        addContent(lesson2.getId(), "Bussin", "Bussin",
+                "Used to describe something that is extremely good, usually food but also applied broadly.",
+                "\"Mum's laksa is bussin, you have to try it.\"", 2);
+        addContent(lesson2.getId(), "Slay", "Slay",
+                "To do something exceptionally well or look incredibly good; an expression of strong approval.",
+                "\"She slayed that presentation — the whole class was impressed.\"", 3);
+        addContent(lesson2.getId(), "It's giving", "It's giving",
+                "Used to describe the vibe or energy something gives off.",
+                "\"That outfit? It's giving main character energy.\"", 4);
 
-        contentRepository.saveAll(seedContent);
+        // Lesson 3: Main Character, Era & NPC
+        Lesson lesson3 = new Lesson();
+        lesson3.setTitle("Main Character, Era & NPC");
+        lesson3.setDescription("Explore Gen-Alpha terms rooted in gaming and storytelling culture.");
+        lesson3.setDifficulty("INTERMEDIATE");
+        lesson3.setObjective("Understand how gaming and pop-culture concepts like main character, NPC, and era have entered everyday Gen-Alpha speech.");
+        lesson3.setPublished(true);
+        lesson3 = lessonRepository.save(lesson3);
+
+        addContent(lesson3.getId(), "Main Character", "Main Character",
+                "Acting as if you are the protagonist of your own life story; being confident and self-focused.",
+                "\"She walked into the party like she was the main character — heads turned immediately.\"", 1);
+        addContent(lesson3.getId(), "NPC", "NPC",
+                "Short for Non-Player Character; used to describe someone who acts robotically, follows the crowd, or lacks original thought.",
+                "\"He just agreed with everything the teacher said — total NPC behaviour.\"", 2);
+        addContent(lesson3.getId(), "Era", "Era",
+                "A phase or period someone is currently in, often used to describe a personal vibe or obsession.",
+                "\"I'm in my study era right now — no distractions, just books.\"", 3);
+        addContent(lesson3.getId(), "Understood the assignment", "Understood the assignment",
+                "A compliment meaning someone did exactly what was needed, perfectly nailing the brief or expectation.",
+                "\"Her Halloween costume? She completely understood the assignment.\"", 4);
+
+        // TODO: Seed QuizQuestion data here once QuizQuestion entity is available
     }
 
-    private Content createContent(Long lessonId,
-                                  String title,
-                                  String term,
-                                  String description,
-                                  String example,
-                                  int orderIndex) {
+    private void addContent(Long lessonId, String title, String term,
+                            String description, String example, int orderIndex) {
         Content content = new Content();
         content.setLessonId(lessonId);
         content.setTitle(title);
@@ -70,6 +102,6 @@ public class ContentSeeder implements ApplicationRunner {
         content.setDescription(description);
         content.setExample(example);
         content.setOrderIndex(orderIndex);
-        return content;
+        contentRepository.save(content);
     }
 }
