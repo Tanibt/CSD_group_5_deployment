@@ -24,71 +24,71 @@ public class ContentSeeder implements CommandLineRunner {
             return; // Already seeded
         }
 
-        // Lesson 1: Introduction to Generative AI
+        // Lesson 1: Rizz, Sigma & Skibidi
         Lesson lesson1 = new Lesson();
-        lesson1.setTitle("Introduction to Generative AI");
-        lesson1.setDescription("Learn the foundational concepts behind generative AI and how it creates new content.");
+        lesson1.setTitle("Rizz, Sigma & Skibidi");
+        lesson1.setDescription("Decode the most iconic Gen-Alpha slang terms that took over the internet.");
         lesson1.setDifficulty("BEGINNER");
-        lesson1.setObjective("Understand what generative AI is, how it differs from traditional AI, and key terminology.");
+        lesson1.setObjective("Understand the meaning and usage of core Gen-Alpha slang words like rizz, sigma, and skibidi.");
         lesson1.setPublished(true);
         lesson1 = lessonRepository.save(lesson1);
 
-        addContent(lesson1.getId(), "Generative AI", "Generative AI",
-                "A type of artificial intelligence that can create new content such as text, images, audio, and video.",
-                "ChatGPT generates text responses; DALL-E generates images from prompts.", 1);
-        addContent(lesson1.getId(), "Large Language Model (LLM)", "LLM",
-                "A deep learning model trained on massive text datasets that can understand and generate human-like language.",
-                "GPT-4, Claude, and Gemini are examples of large language models.", 2);
-        addContent(lesson1.getId(), "Prompt", "Prompt",
-                "The input text or instruction given to a generative AI model to guide its output.",
-                "\"Write a haiku about the ocean\" is a prompt to a text generation model.", 3);
-        addContent(lesson1.getId(), "Token", "Token",
-                "The basic unit of text that a language model processes, typically a word or part of a word.",
-                "The sentence \"Hello world\" contains approximately 2 tokens.", 4);
+        addContent(lesson1.getId(), "Rizz", "Rizz",
+                "Natural charm or charisma, especially the ability to attract others effortlessly.",
+                "\"He walked in and instantly had rizz — everyone wanted to talk to him.\"", 1);
+        addContent(lesson1.getId(), "Sigma", "Sigma",
+                "A person who is self-reliant, independent, and successful without needing social validation. Often used ironically.",
+                "\"He doesn't care what anyone thinks — total sigma grindset.\"", 2);
+        addContent(lesson1.getId(), "Skibidi", "Skibidi",
+                "Originally from a viral YouTube series; used to describe something nonsensical, chaotic, or just as filler slang.",
+                "\"That test was so skibidi, I had no idea what was going on.\"", 3);
+        addContent(lesson1.getId(), "Gyatt", "Gyatt",
+                "An exclamation of surprise or admiration, often used when someone is impressed by a person's appearance.",
+                "\"Gyatt, did you see that outfit?\"", 4);
 
-        // Lesson 2: Prompt Engineering Basics
+        // Lesson 2: No Cap, Bussin & Slay
         Lesson lesson2 = new Lesson();
-        lesson2.setTitle("Prompt Engineering Basics");
-        lesson2.setDescription("Learn how to craft effective prompts to get better results from AI models.");
-        lesson2.setDifficulty("INTERMEDIATE");
-        lesson2.setObjective("Master the techniques of writing clear, specific, and structured prompts for generative AI systems.");
+        lesson2.setTitle("No Cap, Bussin & Slay");
+        lesson2.setDescription("Master the everyday expressions Gen-Alpha uses to react, agree, and hype each other up.");
+        lesson2.setDifficulty("BEGINNER");
+        lesson2.setObjective("Learn how to use popular Gen-Alpha reaction words and affirmations in conversation.");
         lesson2.setPublished(true);
         lesson2 = lessonRepository.save(lesson2);
 
-        addContent(lesson2.getId(), "Zero-Shot Prompting", "Zero-Shot",
-                "Asking the model to perform a task without providing any examples, relying on the model's pretrained knowledge.",
-                "\"Translate this sentence to French: 'Good morning'\" is a zero-shot prompt.", 1);
-        addContent(lesson2.getId(), "Few-Shot Prompting", "Few-Shot",
-                "Providing a few examples in the prompt to help the model understand the desired format or behaviour.",
-                "Showing 3 example Q&A pairs before asking your actual question.", 2);
-        addContent(lesson2.getId(), "Chain-of-Thought", "CoT",
-                "A prompting technique that instructs the model to reason step by step before giving a final answer.",
-                "Adding \"Think step by step\" to a math problem prompt improves accuracy.", 3);
-        addContent(lesson2.getId(), "System Prompt", "System Prompt",
-                "An instruction given to the AI before the user conversation begins, used to set its persona or behaviour.",
-                "\"You are a helpful customer service agent for a bank.\" as a system prompt.", 4);
+        addContent(lesson2.getId(), "No Cap", "No Cap",
+                "Means \"no lie\" or \"for real\" — used to emphasise that you are being completely honest.",
+                "\"That movie was the best I've ever seen, no cap.\"", 1);
+        addContent(lesson2.getId(), "Bussin", "Bussin",
+                "Used to describe something that is extremely good, usually food but also applied broadly.",
+                "\"Mum's laksa is bussin, you have to try it.\"", 2);
+        addContent(lesson2.getId(), "Slay", "Slay",
+                "To do something exceptionally well or look incredibly good; an expression of strong approval.",
+                "\"She slayed that presentation — the whole class was impressed.\"", 3);
+        addContent(lesson2.getId(), "It's giving", "It's giving",
+                "Used to describe the vibe or energy something gives off.",
+                "\"That outfit? It's giving main character energy.\"", 4);
 
-        // Lesson 3: AI Ethics and Responsible Use
+        // Lesson 3: Main Character, Era & NPC
         Lesson lesson3 = new Lesson();
-        lesson3.setTitle("AI Ethics and Responsible Use");
-        lesson3.setDescription("Explore the ethical considerations and responsible practices when working with AI systems.");
-        lesson3.setDifficulty("BEGINNER");
-        lesson3.setObjective("Understand bias, hallucination, privacy concerns, and responsible AI principles.");
+        lesson3.setTitle("Main Character, Era & NPC");
+        lesson3.setDescription("Explore Gen-Alpha terms rooted in gaming and storytelling culture.");
+        lesson3.setDifficulty("INTERMEDIATE");
+        lesson3.setObjective("Understand how gaming and pop-culture concepts like main character, NPC, and era have entered everyday Gen-Alpha speech.");
         lesson3.setPublished(true);
         lesson3 = lessonRepository.save(lesson3);
 
-        addContent(lesson3.getId(), "AI Hallucination", "Hallucination",
-                "When an AI model generates information that sounds plausible but is factually incorrect or made up.",
-                "An AI confidently stating a false historical date or fabricating a book citation.", 1);
-        addContent(lesson3.getId(), "Bias in AI", "Bias",
-                "Systematic errors in AI outputs caused by biased training data or flawed model design.",
-                "A hiring AI ranking candidates lower based on gender due to historical data bias.", 2);
-        addContent(lesson3.getId(), "Data Privacy", "Data Privacy",
-                "The right of individuals to control how their personal information is collected and used by AI systems.",
-                "Avoiding input of personal health data into public AI tools that retain conversations.", 3);
-        addContent(lesson3.getId(), "Human-in-the-Loop", "HITL",
-                "A design approach where humans review or approve AI outputs before they are acted upon.",
-                "A doctor reviewing an AI-generated diagnosis before prescribing treatment.", 4);
+        addContent(lesson3.getId(), "Main Character", "Main Character",
+                "Acting as if you are the protagonist of your own life story; being confident and self-focused.",
+                "\"She walked into the party like she was the main character — heads turned immediately.\"", 1);
+        addContent(lesson3.getId(), "NPC", "NPC",
+                "Short for Non-Player Character; used to describe someone who acts robotically, follows the crowd, or lacks original thought.",
+                "\"He just agreed with everything the teacher said — total NPC behaviour.\"", 2);
+        addContent(lesson3.getId(), "Era", "Era",
+                "A phase or period someone is currently in, often used to describe a personal vibe or obsession.",
+                "\"I'm in my study era right now — no distractions, just books.\"", 3);
+        addContent(lesson3.getId(), "Understood the assignment", "Understood the assignment",
+                "A compliment meaning someone did exactly what was needed, perfectly nailing the brief or expectation.",
+                "\"Her Halloween costume? She completely understood the assignment.\"", 4);
 
         // TODO: Seed QuizQuestion data here once QuizQuestion entity is available (Tian Le's branch)
     }

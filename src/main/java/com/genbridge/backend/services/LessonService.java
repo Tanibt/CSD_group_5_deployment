@@ -57,7 +57,9 @@ public class LessonService {
     public Lesson togglePublish(Long id) {
         Lesson lesson = lessonRepository.findById(id)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Lesson not found"));
-        lesson.setPublished(!lesson.isPublished());
+        boolean nowPublished = !lesson.isPublished();
+        lesson.setPublished(nowPublished);
+        lesson.setPublishedAt(nowPublished ? LocalDateTime.now() : null);
         lesson.setUpdatedAt(LocalDateTime.now());
         return lessonRepository.save(lesson);
     }
