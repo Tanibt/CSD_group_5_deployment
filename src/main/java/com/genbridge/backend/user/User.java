@@ -8,6 +8,7 @@ import jakarta.persistence.Id;
 import jakarta.persistence.Table;
 
 
+import java.time.LocalDate;
 import java.util.UUID;
 
 @Entity
@@ -29,6 +30,12 @@ public class User {
 
     @Column(nullable = false, length = 30)
     private String role = "LEARNER";
+
+    @Column(name = "current_streak")
+    private Integer currentStreak = 0;
+
+    @Column(name = "last_active_date")
+    private LocalDate lastActiveDate;
 
     public User() {}
 
@@ -73,5 +80,21 @@ public class User {
 
     public void setRole(String role) {
         this.role = role;
+    }
+
+    public int getCurrentStreak() {
+        return currentStreak == null ? 0 : currentStreak;
+    }
+
+    public void setCurrentStreak(Integer currentStreak) {
+        this.currentStreak = currentStreak;
+    }
+
+    public LocalDate getLastActiveDate() {
+        return lastActiveDate;
+    }
+
+    public void setLastActiveDate(LocalDate lastActiveDate) {
+        this.lastActiveDate = lastActiveDate;
     }
 }

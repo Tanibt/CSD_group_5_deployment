@@ -8,6 +8,8 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDate;
+
 @Service
 public class UserService {
 
@@ -45,5 +47,33 @@ public class UserService {
         // Step 3: Credentials are correct — generate and return the JWT token
         String token = jwtUtil.generateToken(user.getEmail(), user.getRole());
         return new LoginResponse(token, user.getEmail(), user.getRole());
+    }
+
+    @Transactional(readOnly = true)
+    public User getByEmail(String email) {
+        return userRepository.findByEmail(email)
+                .orElseThrow(() -> new IllegalArgumentException("User not found"));
+    }
+
+    @Transactional
+    public void updateStreak(User user) {
+        LocalDate today = LocalDate.now();
+        LocalDate lastActive = user.getLastActiveDate();
+
+        if (lastActive == null) {
+            // First activity ever
+            user.setCurrentStreak(1);
+        } else if (lastActive.equals(today)) {
+            // Already active today — no change
+        } else if (lastActive.equals(today.minusDays(1))) {
+            // Active yesterday — extend streak
+            user.setCurrentStreak(user.getCurrentStreak() + 1);
+        } else {
+            // Gap of more than 1 day — reset streak
+            user.setCurrentStreak(1);
+        }
+
+        user.setLastActiveDate(today);
+        userRepository.save(user);
     }
 }

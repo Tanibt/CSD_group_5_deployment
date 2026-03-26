@@ -90,7 +90,7 @@ public class ContentSeeder implements CommandLineRunner {
                 "A compliment meaning someone did exactly what was needed, perfectly nailing the brief or expectation.",
                 "\"Her Halloween costume? She completely understood the assignment.\"", 4);
 
-        // TODO: Seed QuizQuestion data here once QuizQuestion entity is available (Tian Le's branch)
+        // TODO: Seed QuizQuestion data here once QuizQuestion entity is available
     }
 
     private void addContent(Long lessonId, String title, String term,
