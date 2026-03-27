@@ -45,6 +45,7 @@ public class SecurityConfig {
                 .requestMatchers(HttpMethod.GET, "/api/lessons/{id}/quiz").authenticated()
                 .requestMatchers(HttpMethod.POST, "/api/lessons/{id}/start").authenticated()
                 .requestMatchers(HttpMethod.POST, "/api/lessons/{id}/quiz/submit").authenticated()
+                .requestMatchers(HttpMethod.POST, "/api/lessons/{id}/report").authenticated()
                 .requestMatchers(HttpMethod.GET, "/api/content/lesson/{lessonId}").authenticated()
                 .requestMatchers(HttpMethod.GET, "/api/progress").authenticated()
 
@@ -54,6 +55,8 @@ public class SecurityConfig {
                 .requestMatchers(HttpMethod.PUT, "/api/lessons/{id}").hasRole("ADMIN")
                 .requestMatchers(HttpMethod.DELETE, "/api/lessons/{id}").hasRole("ADMIN")
                 .requestMatchers(HttpMethod.POST, "/api/lessons/{id}/quiz").hasRole("ADMIN")
+                .requestMatchers(HttpMethod.PUT, "/api/lessons/{id}/quiz/{questionId}").hasRole("ADMIN")
+                .requestMatchers(HttpMethod.DELETE, "/api/lessons/{id}/quiz/{questionId}").hasRole("ADMIN")
 
                 // All other endpoints require any authenticated user
                 .anyRequest().authenticated()

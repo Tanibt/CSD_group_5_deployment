@@ -123,6 +123,36 @@ public class QuizService {
         return result;
     }
 
+    public QuizQuestion updateQuizQuestion(Long lessonId, Long questionId, CreateQuizQuestionRequest request) {
+        ensureLessonExists(lessonId);
+        if (request.getOptions() == null || request.getOptions().size() != 4) {
+            throw new IllegalArgumentException("Exactly 4 options are required");
+        }
+        QuizQuestion question = quizQuestionRepository.findById(questionId)
+                .orElseThrow(() -> new IllegalArgumentException("Question not found"));
+        if (!lessonId.equals(question.getLessonId())) {
+            throw new IllegalArgumentException("Question does not belong to this lesson");
+        }
+        question.setQuestionText(request.getQuestionText());
+        question.setOptionA(request.getOptions().get(0));
+        question.setOptionB(request.getOptions().get(1));
+        question.setOptionC(request.getOptions().get(2));
+        question.setOptionD(request.getOptions().get(3));
+        question.setCorrectIndex(request.getCorrectIndex());
+        question.setExplanation(request.getExplanation());
+        return quizQuestionRepository.save(question);
+    }
+
+    public void deleteQuizQuestion(Long lessonId, Long questionId) {
+        ensureLessonExists(lessonId);
+        QuizQuestion question = quizQuestionRepository.findById(questionId)
+                .orElseThrow(() -> new IllegalArgumentException("Question not found"));
+        if (!lessonId.equals(question.getLessonId())) {
+            throw new IllegalArgumentException("Question does not belong to this lesson");
+        }
+        quizQuestionRepository.deleteById(questionId);
+    }
+
     public Map<String, Object> answerQuestion(Long lessonId, Long questionId, Integer selectedIndex, User user) {
         ensureLessonExists(lessonId);
 

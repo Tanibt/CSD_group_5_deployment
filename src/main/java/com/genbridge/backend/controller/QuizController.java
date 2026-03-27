@@ -10,12 +10,8 @@ import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
+
 
 import java.util.List;
 import java.util.Map;
@@ -47,6 +43,20 @@ public class QuizController {
                                                           Authentication authentication) {
         User user = (User) authentication.getPrincipal();
         return ResponseEntity.ok(quizService.submitQuiz(lessonId, request, user));
+    }
+
+    @PutMapping("/{questionId}")
+    public ResponseEntity<QuizQuestion> updateQuizQuestion(@PathVariable("id") Long lessonId,
+                                                           @PathVariable Long questionId,
+                                                           @Valid @RequestBody CreateQuizQuestionRequest request) {
+        return ResponseEntity.ok(quizService.updateQuizQuestion(lessonId, questionId, request));
+    }
+
+    @DeleteMapping("/{questionId}")
+    public ResponseEntity<Void> deleteQuizQuestion(@PathVariable("id") Long lessonId,
+                                                   @PathVariable Long questionId) {
+        quizService.deleteQuizQuestion(lessonId, questionId);
+        return ResponseEntity.noContent().build();
     }
 
     @PostMapping("/{questionId}/answer")
