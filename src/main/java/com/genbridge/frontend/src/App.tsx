@@ -93,6 +93,10 @@ const App = () => (
             }
           />
 
+          <Route path="/forum" element={<PrivateRoute element={<div>Forum coming soon</div>} />} />
+          <Route path="/forum/:id" element={<PrivateRoute element={<div>Post detail coming soon</div>} />} />
+          <Route path="/quests" element={<PrivateRoute element={<div>Quests coming soon</div>} />} />
+          <Route path="/quests/:id" element={<PrivateRoute element={<div>Quest detail coming soon</div>} />} />
           <Route path="/profile" element={<PrivateRoute element={<Profile />} />} />
           <Route path="/settings" element={<PrivateRoute element={<Settings />} />} />
           <Route path="*" element={<NotFound />} />

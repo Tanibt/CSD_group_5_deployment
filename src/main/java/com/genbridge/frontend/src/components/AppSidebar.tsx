@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { Flame, Star, LogOut } from "lucide-react";
+import { Flame, Star, LogOut, MessageCircle, Trophy } from "lucide-react";
 import BridgeIcon from "@/assets/icons/bridge.svg?react";
 import HomeIcon from "@/assets/icons/home.svg?react";
 import DictionaryIcon from "@/assets/icons/dictionary.svg?react";
@@ -10,7 +10,7 @@ import SettingsIcon from "@/assets/icons/settings.svg?react";
 import { useUserProgress } from "@/hooks/useUserProgress";
 
 interface AppSidebarProps {
-  activePage: "home" | "learn" | "profile" | "settings";
+  activePage: "home" | "learn" | "forum" | "quests" | "profile" | "settings";
 }
 
 const AppSidebar = ({ activePage }: AppSidebarProps) => {
@@ -30,6 +30,8 @@ const AppSidebar = ({ activePage }: AppSidebarProps) => {
   const navItems = [
     { icon: HomeIcon,       label: "Home",     href: "/",         page: "home"     },
     { icon: DictionaryIcon, label: "Lessons",  href: "/lessons",  page: "learn"    },
+    { icon: MessageCircle,  label: "Forum",    href: "/forum",    page: "forum"    },
+    { icon: Trophy,         label: "Quests",   href: "/quests",   page: "quests"   },
     { icon: AccountIcon,    label: "Profile",  href: "/profile",  page: "profile"  },
     { icon: SettingsIcon,   label: "Settings", href: "/settings", page: "settings" },
   ] as const;
