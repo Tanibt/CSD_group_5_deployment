@@ -155,8 +155,12 @@ const LessonDetail = () => {
       toast({ title: "Report submitted", description: "Thank you — an admin will review it." });
       setReportOpen(false);
       setReportText("");
-    } catch {
-      toast({ title: "Error submitting report" });
+    } catch (err: any) {
+      const data = err?.response?.data;
+      const msg = typeof data === "string"
+        ? data
+        : data?.detail ?? data?.message ?? "Error submitting report";
+      toast({ title: msg, variant: "destructive" });
     } finally {
       setSubmittingReport(false);
     }
