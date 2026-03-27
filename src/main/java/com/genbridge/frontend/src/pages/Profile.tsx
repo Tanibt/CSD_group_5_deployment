@@ -1,9 +1,9 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import { Flame, Star, BookOpen, CheckCircle2, Pencil, Check, X } from "lucide-react";
 import AppSidebar from "@/components/AppSidebar";
-import { useUserProgress } from "@/hooks/useUserProgress";
 import { useToast } from "@/hooks/use-toast";
+import api from "@/services/api";
 
 // ─── Temporary lesson lookup (replace with API data once api.ts is ready) ─────
 
@@ -57,9 +57,40 @@ function decodeToken(): { email: string; name: string } {
 }
 
 const Profile = () => {
-  const { xp, streak, completedLessons } = useUserProgress();
   const { toast } = useToast();
   const decoded = decodeToken();
+
+  const [streak, setStreak] = useState(0);
+  const [xp, setXp] = useState(0);
+  const [completedLessons, setCompletedLessons] = useState<{ id: number; title: string; difficulty: string }[]>([]);
+
+  useEffect(() => {
+    const fetchStats = async () => {
+      try {
+        const [profileRes, progressRes] = await Promise.all([
+          api.get("/profile"),
+          api.get("/progress"),
+        ]);
+        setStreak(profileRes.data.currentStreak ?? 0);
+        const completed = (progressRes.data.lessons as { lessonId: number; completed: boolean }[])
+          .filter((p) => p.completed);
+        setXp(completed.length * 10);
+
+        // Fetch lesson details for completed lessons
+        const lessonDetails = await Promise.all(
+          completed.map((p) => api.get(`/lessons/${p.lessonId}`))
+        );
+        setCompletedLessons(lessonDetails.map((r) => ({
+          id: r.data.id,
+          title: r.data.title,
+          difficulty: r.data.difficulty,
+        })));
+      } catch {
+        toast({ title: "Error loading profile" });
+      }
+    };
+    fetchStats();
+  }, []);
 
   const [name,  setName]  = useState(decoded.name);
   const [email, setEmail] = useState(decoded.email);
@@ -83,9 +114,7 @@ const Profile = () => {
     if (field === "email") { setDraftEmail(email);  setEditingEmail(false); }
   };
 
-  const completedList = [...completedLessons]
-    .map((id) => ({ id, ...LESSON_LOOKUP[id] }))
-    .filter((l) => l.title);
+  const completedList = completedLessons;
 
   const current   = [...LEVELS].reverse().find((l) => xp >= l.min) ?? LEVELS[0];
   const isMax     = current.label === "Advanced";
@@ -265,9 +294,8 @@ const Profile = () => {
                       <CheckCircle2 className="w-5 h-5 text-primary shrink-0" />
                       <div className="flex-1 min-w-0">
                         <p className="font-medium text-card-foreground text-sm">{lesson.title}</p>
-                        <p className="text-xs text-muted-foreground">{lesson.module}</p>
                       </div>
-                      <span className={`text-xs font-medium px-2.5 py-1 rounded-full border ${DIFFICULTY_COLORS[lesson.difficulty]}`}>
+                      <span className={`text-xs font-medium px-2.5 py-1 rounded-full border ${DIFFICULTY_COLORS[lesson.difficulty as keyof typeof DIFFICULTY_COLORS] ?? ""}`}>
                         {lesson.difficulty}
                       </span>
                     </motion.div>

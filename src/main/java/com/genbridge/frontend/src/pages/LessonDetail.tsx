@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
-import Navbar from "@/components/Navbar";
+import AppSidebar from "@/components/AppSidebar";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
@@ -115,7 +115,23 @@ const LessonDetail = () => {
     try {
       const res = await api.post(`/lessons/${lesson.id}/quiz/submit`, { answers });
       setQuizResult(res.data);
-      if (res.data.completed) setIsCompleted(true);
+      if (res.data.completed) {
+        setIsCompleted(true);
+
+        // Sync streak and XP to localStorage so Navbar updates
+        const [profileRes, progressRes] = await Promise.all([
+          api.get("/profile"),
+          api.get("/progress"),
+        ]);
+
+        const streak = profileRes.data.currentStreak ?? 0;
+        const completedCount = progressRes.data.completedLessons ?? 0;
+        const xp = completedCount * 10;
+
+        localStorage.setItem("gb_streak", String(streak));
+        localStorage.setItem("gb_xp", String(xp));
+        window.dispatchEvent(new Event("gb_progress"));
+      }
     } catch {
       toast({ title: "Error submitting quiz" });
     } finally {
@@ -125,9 +141,9 @@ const LessonDetail = () => {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-background">
-        <Navbar />
-        <div className="flex justify-center pt-40">
+      <div className="flex min-h-screen bg-background">
+        <AppSidebar activePage="learn" />
+        <div className="flex-1 ml-72 flex justify-center pt-40">
           <Loader2 className="w-8 h-8 animate-spin text-primary" />
         </div>
       </div>
@@ -140,10 +156,10 @@ const LessonDetail = () => {
 
   if (quizView) {
     return (
-      <div className="min-h-screen bg-background">
-        <Navbar />
-        <div className="pt-24 pb-16 px-4">
-          <div className="container mx-auto max-w-3xl">
+      <div className="flex min-h-screen bg-background">
+        <AppSidebar activePage="learn" />
+        <div className="flex-1 ml-72 pt-12 pb-16 px-8">
+          <div className="max-w-3xl mx-auto">
             <button
               onClick={() => { setQuizView(false); setQuizResult(null); setAnswers({}); }}
               className="flex items-center gap-2 text-muted-foreground hover:text-foreground transition-colors mb-8"
@@ -237,10 +253,10 @@ const LessonDetail = () => {
   // ── Lesson detail view ───────────────────────────────────────────────────
 
   return (
-    <div className="min-h-screen bg-background">
-      <Navbar />
-      <div className="pt-24 pb-16 px-4">
-        <div className="container mx-auto max-w-3xl">
+    <div className="flex min-h-screen bg-background">
+      <AppSidebar activePage="learn" />
+      <div className="flex-1 ml-72 pt-12 pb-16 px-8">
+        <div className="max-w-3xl mx-auto">
           <button
             onClick={() => navigate("/lessons")}
             className="flex items-center gap-2 text-muted-foreground hover:text-foreground transition-colors mb-8"
