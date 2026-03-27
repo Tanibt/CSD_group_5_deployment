@@ -1,6 +1,6 @@
 import { useEffect, useState, useRef } from "react";
 import { Navigate } from "react-router-dom";
-import Navbar from "@/components/Navbar";
+import AdminSidebar from "@/components/AdminSidebar";
 import api from "@/services/api";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -14,6 +14,7 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/hooks/use-toast";
 import { motion } from "framer-motion";
+import { AlertTriangle } from "lucide-react";
 
 interface Lesson {
   id: number;
@@ -43,7 +44,7 @@ export default function Admin() {
 
   if (role !== "ADMIN") return <Navigate to="/lessons" replace />;
 
-  const [tab, setTab] = useState<"lessons" | "content" | "quiz">("lessons");
+  const [tab, setTab] = useState<"lessons" | "content" | "quiz" | "reports">("lessons");
   const [lessons, setLessons] = useState<Lesson[]>([]);
   const [loadingLessons, setLoadingLessons] = useState(true);
 
@@ -53,6 +54,8 @@ export default function Admin() {
 
   const [lessonModalOpen, setLessonModalOpen] = useState(false);
   const [contentModalOpen, setContentModalOpen] = useState(false);
+
+  const [deleteTarget, setDeleteTarget] = useState<{ type: "lesson" | "content" | "quiz"; id: number; title: string } | null>(null);
 
   const [editingLesson, setEditingLesson] = useState<Lesson | null>(null);
   const [editingContent, setEditingContent] = useState<ContentTerm | null>(
@@ -96,18 +99,27 @@ export default function Admin() {
   };
 
   const [quizForm, setQuizForm] = useState(emptyQuizForm);
+  const [editingQuestion, setEditingQuestion] = useState<any | null>(null);
   // ==============================================
+
+  // ================= REPORTS STATE =================
+  const [reports, setReports] = useState<any[]>([]);
+  const [loadingReports, setLoadingReports] = useState(false);
+  // =================================================
 
   // Scroll to top when tab changes
   useEffect(() => {
     topRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [tab]);
 
-  // Reset state when switching to lessons tab
+  // Reset state when switching tabs
   useEffect(() => {
     if (tab === "lessons") {
       setSelectedLesson(null);
       setContentTerms([]);
+    }
+    if (tab === "reports") {
+      loadReports();
     }
   }, [tab]);
 
@@ -154,6 +166,30 @@ export default function Admin() {
     }
   };
   // =============================================
+
+  // ================= LOAD REPORTS =================
+  const loadReports = async () => {
+    setLoadingReports(true);
+    try {
+      const res = await api.get("/admin/reports");
+      setReports(res.data);
+    } catch {
+      toast({ title: "Error loading reports" });
+    } finally {
+      setLoadingReports(false);
+    }
+  };
+
+  const resolveReport = async (reportId: number) => {
+    try {
+      await api.put(`/admin/reports/${reportId}/resolve`);
+      toast({ title: "Report resolved" });
+      loadReports();
+    } catch {
+      toast({ title: "Error resolving report" });
+    }
+  };
+  // =================================================
 
   // Validate lesson
   const validateLesson = () => {
@@ -250,24 +286,26 @@ export default function Admin() {
       toast({ title: "Select a lesson first" });
       return;
     }
-
     if (!quizForm.questionText.trim()) {
       toast({ title: "Question text required" });
       return;
     }
-
     if (quizForm.options.some((o) => !o.trim())) {
       toast({ title: "All 4 options required" });
       return;
     }
-
     setSavingQuiz(true);
-
     try {
-      await api.post(`/lessons/${quizLessonId}/quiz`, quizForm);
-      toast({ title: "Question added successfully" });
+      if (editingQuestion) {
+        await api.put(`/lessons/${quizLessonId}/quiz/${editingQuestion.id}`, quizForm);
+        toast({ title: "Question updated successfully" });
+      } else {
+        await api.post(`/lessons/${quizLessonId}/quiz`, quizForm);
+        toast({ title: "Question added successfully" });
+      }
       setQuizModalOpen(false);
       setQuizForm(emptyQuizForm);
+      setEditingQuestion(null);
       loadQuiz(quizLessonId);
     } catch {
       toast({ title: "Error saving question" });
@@ -277,18 +315,27 @@ export default function Admin() {
   };
   // =============================================
 
-  const deleteLesson = async (id: number) => {
-    if (!confirm("Delete this lesson?")) return;
-    await api.delete(`/lessons/${id}`);
-    toast({ title: "Lesson deleted" });
-    loadLessons();
-  };
-
-  const deleteContent = async (id: number) => {
-    if (!selectedLesson) return;
-    await api.delete(`/content/${id}`);
-    toast({ title: "Content deleted" });
-    loadContent(selectedLesson.id);
+  const confirmDelete = async () => {
+    if (!deleteTarget) return;
+    try {
+      if (deleteTarget.type === "lesson") {
+        await api.delete(`/lessons/${deleteTarget.id}`);
+        toast({ title: "Lesson deleted" });
+        loadLessons();
+      } else if (deleteTarget.type === "content") {
+        await api.delete(`/content/${deleteTarget.id}`);
+        toast({ title: "Content deleted" });
+        if (selectedLesson) loadContent(selectedLesson.id);
+      } else {
+        await api.delete(`/lessons/${quizLessonId}/quiz/${deleteTarget.id}`);
+        toast({ title: "Question deleted" });
+        if (quizLessonId) loadQuiz(quizLessonId);
+      }
+    } catch {
+      toast({ title: "Error deleting" });
+    } finally {
+      setDeleteTarget(null);
+    }
   };
 
   const togglePublish = async (id: number) => {
@@ -298,36 +345,15 @@ export default function Admin() {
   };
 
   return (
-    <div className="min-h-screen bg-background">
-      <Navbar />
+    <div className="flex min-h-screen bg-background">
+      <AdminSidebar activeTab={tab} onTabChange={setTab} />
       <div ref={topRef} />
 
-      <div className="pt-24 pb-16 px-4">
-        <div className="container mx-auto max-w-5xl">
-          <h1 className="text-3xl font-bold mb-6">Admin Dashboard</h1>
-
-          {/* Tabs */}
-          <div className="flex gap-4 mb-10">
-            <Button
-              variant={tab === "lessons" ? "default" : "outline"}
-              onClick={() => setTab("lessons")}
-            >
-              Lessons
-            </Button>
-            <Button
-              variant={tab === "content" ? "default" : "outline"}
-              onClick={() => setTab("content")}
-            >
-              Content
-            </Button>
-
-            <Button
-              variant={tab === "quiz" ? "default" : "outline"}
-              onClick={() => setTab("quiz")}
-            >
-              Quiz
-            </Button>
-          </div>
+      <div className="flex-1 ml-72 pt-12 pb-16 px-8">
+        <div className="max-w-5xl mx-auto">
+          <h1 className="font-display text-3xl font-bold text-foreground mb-8">
+            {tab === "lessons" ? "Lessons" : tab === "content" ? "Content" : tab === "quiz" ? "Quiz" : "Reports"}
+          </h1>
 
           {/* LESSONS TAB */}
           {tab === "lessons" && (
@@ -407,7 +433,7 @@ export default function Admin() {
                         <Button
                           size="sm"
                           variant="destructive"
-                          onClick={() => deleteLesson(lesson.id)}
+                          onClick={() => setDeleteTarget({ type: "lesson", id: lesson.id, title: lesson.title })}
                         >
                           Delete
                         </Button>
@@ -422,32 +448,35 @@ export default function Admin() {
           {/* CONTENT TAB */}
           {tab === "content" && (
             <>
-              {!selectedLesson ?
+              <div className="mb-6">
+                <select
+                  className="w-full border rounded-md p-2"
+                  value={selectedLesson?.id ?? ""}
+                  onChange={(e) => {
+                    const id = Number(e.target.value);
+                    const lesson = lessons.find((l) => l.id === id) ?? null;
+                    setSelectedLesson(lesson);
+                    if (lesson) loadContent(lesson.id);
+                  }}
+                >
+                  <option value="">Select lesson</option>
+                  {lessons.map((lesson) => (
+                    <option key={lesson.id} value={lesson.id}>
+                      {lesson.title}
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              {!selectedLesson ? (
                 <div className="flex flex-col items-center justify-center py-20 text-center">
-                  <h3 className="text-lg font-semibold mb-2">
-                    No lesson selected
-                  </h3>
+                  <h3 className="text-lg font-semibold mb-2">No lesson selected</h3>
                   <p className="text-muted-foreground text-sm max-w-sm">
-                    Please select a lesson from the Lessons tab to manage its
-                    content.
+                    Select a lesson from the dropdown above to manage its content.
                   </p>
                 </div>
-              : <>
-                  <div className="text-sm text-muted-foreground mb-4">
-                    Lessons →{" "}
-                    <span className="font-medium text-foreground">
-                      {selectedLesson.title}
-                    </span>
-                  </div>
-
-                  <Button
-                    variant="outline"
-                    className="mb-6"
-                    onClick={() => setTab("lessons")}
-                  >
-                    ← Back to Lessons
-                  </Button>
-
+              ) : (
+                <>
                   <Button
                     className="mb-6"
                     onClick={() => {
@@ -465,9 +494,12 @@ export default function Admin() {
                     + Add Content
                   </Button>
 
-                  {loadingContent ?
+                  {loadingContent ? (
                     <p>Loading content...</p>
-                  : <div className="space-y-4">
+                  ) : contentTerms.length === 0 ? (
+                    <p className="text-muted-foreground">No content added yet.</p>
+                  ) : (
+                    <div className="space-y-4">
                       {contentTerms.map((term) => (
                         <motion.div
                           key={term.id}
@@ -478,7 +510,6 @@ export default function Admin() {
                           <p className="text-sm text-muted-foreground mb-3">
                             {term.description}
                           </p>
-
                           <div className="flex gap-3">
                             <Button
                               size="sm"
@@ -490,11 +521,10 @@ export default function Admin() {
                             >
                               Edit
                             </Button>
-
                             <Button
                               size="sm"
                               variant="destructive"
-                              onClick={() => deleteContent(term.id)}
+                              onClick={() => setDeleteTarget({ type: "content", id: term.id, title: term.term })}
                             >
                               Delete
                             </Button>
@@ -502,9 +532,9 @@ export default function Admin() {
                         </motion.div>
                       ))}
                     </div>
-                  }
+                  )}
                 </>
-              }
+              )}
             </>
           )}
 
@@ -543,6 +573,7 @@ export default function Admin() {
                   <Button
                     className="mb-6"
                     onClick={() => {
+                      setEditingQuestion(null);
                       setQuizForm(emptyQuizForm);
                       setQuizModalOpen(true);
                     }}
@@ -550,40 +581,125 @@ export default function Admin() {
                     + Add Question
                   </Button>
 
-                  {loadingQuiz ?
+                  {loadingQuiz ? (
                     <p>Loading quiz...</p>
-                  : quizQuestions.length === 0 ?
-                    <p className="text-muted-foreground">
-                      No quiz questions added yet.
-                    </p>
-                  : <div className="space-y-4">
+                  ) : quizQuestions.length === 0 ? (
+                    <p className="text-muted-foreground">No quiz questions added yet.</p>
+                  ) : (
+                    <div className="space-y-4">
                       {quizQuestions.map((q) => (
                         <motion.div
                           key={q.id}
                           whileHover={{ scale: 1.01 }}
                           className="border rounded-xl p-5 bg-card shadow-sm"
                         >
-                          <h3 className="font-semibold mb-2">
-                            {q.questionText}
-                          </h3>
-
-                          <ul className="text-sm text-muted-foreground mb-3">
+                          <h3 className="font-semibold mb-3">{q.questionText}</h3>
+                          <ul className="text-sm text-muted-foreground mb-3 space-y-1">
                             {q.options.map((opt: string, i: number) => (
-                              <li key={i}>
-                                {i}. {opt}
+                              <li key={i} className={i === q.correctIndex ? "text-primary font-medium" : ""}>
+                                {i + 1}. {opt} {i === q.correctIndex && "✓"}
                               </li>
                             ))}
                           </ul>
-
-                          <p className="text-xs text-muted-foreground">
-                            Explanation: {q.explanation}
-                          </p>
+                          {q.explanation && (
+                            <p className="text-xs text-muted-foreground mb-3">
+                              Explanation: {q.explanation}
+                            </p>
+                          )}
+                          <div className="flex gap-3">
+                            <Button
+                              size="sm"
+                              onClick={() => {
+                                setEditingQuestion(q);
+                                setQuizForm({
+                                  questionText: q.questionText,
+                                  options: q.options,
+                                  correctIndex: q.correctIndex ?? 0,
+                                  explanation: q.explanation ?? "",
+                                });
+                                setQuizModalOpen(true);
+                              }}
+                            >
+                              Edit
+                            </Button>
+                            <Button
+                              size="sm"
+                              variant="destructive"
+                              onClick={() => setDeleteTarget({ type: "quiz", id: q.id, title: q.questionText })}
+                            >
+                              Delete
+                            </Button>
+                          </div>
                         </motion.div>
                       ))}
                     </div>
-                  }
+                  )}
                 </>
               }
+            </>
+          )}
+
+          {/* REPORTS TAB */}
+          {tab === "reports" && (
+            <>
+              <p className="text-sm text-muted-foreground mb-6">
+                Lessons are automatically unpublished after 3 unique reports. Each user can only report a lesson once.
+              </p>
+              {loadingReports ? (
+                <p>Loading reports...</p>
+              ) : reports.length === 0 ? (
+                <p className="text-muted-foreground">No reports submitted yet.</p>
+              ) : (
+                <div className="space-y-4">
+                  {reports.map((report) => {
+                    const lessonTitle = lessons.find((l) => l.id === report.lessonId)?.title ?? `Lesson #${report.lessonId}`;
+                    const openCount = reports.filter((r) => r.lessonId === report.lessonId && r.status === "OPEN").length;
+                    return (
+                      <motion.div
+                        key={report.id}
+                        whileHover={{ scale: 1.01 }}
+                        className="border rounded-xl p-5 bg-card shadow-sm"
+                      >
+                        <div className="flex justify-between items-start mb-2">
+                          <div className="flex items-center gap-2">
+                            <span className={`text-xs font-semibold px-2 py-0.5 rounded-full ${
+                              report.status === "OPEN"
+                                ? "bg-red-100 text-red-700"
+                                : "bg-green-100 text-green-700"
+                            }`}>
+                              {report.status}
+                            </span>
+                            {report.status === "OPEN" && (
+                              <span className="text-xs text-muted-foreground">
+                                {openCount}/3 reports
+                              </span>
+                            )}
+                          </div>
+                          <span className="text-xs font-medium text-foreground">{lessonTitle}</span>
+                        </div>
+                        <p className="text-sm text-foreground mb-3">{report.description}</p>
+                        <div className="flex gap-3">
+                          {report.status === "OPEN" && (
+                            <Button size="sm" onClick={() => resolveReport(report.id)}>
+                              Mark Resolved
+                            </Button>
+                          )}
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            onClick={() => {
+                              setSelectedLesson(lessons.find((l) => l.id === report.lessonId) ?? null);
+                              setTab("lessons");
+                            }}
+                          >
+                            View Lesson
+                          </Button>
+                        </div>
+                      </motion.div>
+                    );
+                  })}
+                </div>
+              )}
             </>
           )}
 
@@ -714,11 +830,37 @@ export default function Admin() {
             </DialogContent>
           </Dialog>
 
+          {/* DELETE CONFIRMATION MODAL */}
+          <Dialog open={!!deleteTarget} onOpenChange={(open) => { if (!open) setDeleteTarget(null); }}>
+            <DialogContent className="max-w-md">
+              <DialogHeader>
+                <DialogTitle className="flex items-center gap-2 text-destructive">
+                  <AlertTriangle className="w-5 h-5" />
+                  {deleteTarget?.type === "lesson" ? "Delete Lesson?" : "Delete Content?"}
+                </DialogTitle>
+              </DialogHeader>
+              <p className="text-sm text-muted-foreground mt-2">
+                This will permanently delete{" "}
+                <span className="font-semibold text-foreground">"{deleteTarget?.title}"</span>
+                {deleteTarget?.type === "lesson" && " and all its content and quiz questions"}.
+                This action cannot be undone.
+              </p>
+              <div className="flex gap-3 mt-4">
+                <Button variant="outline" className="flex-1" onClick={() => setDeleteTarget(null)}>
+                  Cancel
+                </Button>
+                <Button variant="destructive" className="flex-1" onClick={confirmDelete}>
+                  Delete
+                </Button>
+              </div>
+            </DialogContent>
+          </Dialog>
+
           {/* QUIZ MODAL */}
           <Dialog open={quizModalOpen} onOpenChange={setQuizModalOpen}>
             <DialogContent>
               <DialogHeader>
-                <DialogTitle>Add Quiz Question</DialogTitle>
+                <DialogTitle>{editingQuestion ? "Edit Quiz Question" : "Add Quiz Question"}</DialogTitle>
               </DialogHeader>
 
               <div className="space-y-4 mt-4">
@@ -772,7 +914,7 @@ export default function Admin() {
                   disabled={savingQuiz}
                   className="w-full"
                 >
-                  {savingQuiz ? "Saving..." : "Save Question"}
+                  {savingQuiz ? "Saving..." : editingQuestion ? "Save Changes" : "Save Question"}
                 </Button>
               </div>
             </DialogContent>
@@ -782,3 +924,4 @@ export default function Admin() {
     </div>
   );
 }
+
