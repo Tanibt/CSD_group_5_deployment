@@ -36,7 +36,7 @@ const Navbar = () => {
       className="fixed top-0 left-0 right-0 z-50 backdrop-blur-lg border-b"
       style={{ backgroundColor: "rgba(239,235,225,0.85)", borderColor: "rgba(0,0,0,0.08)" }}
     >
-      <div className="container mx-auto flex items-center justify-between h-16 px-4">
+      <div className="flex items-center justify-between h-16 px-8 w-full">
         <Link to="/" className="flex items-center gap-2">
           <div className="w-8 h-8 rounded-lg bg-primary flex items-center justify-center shrink-0">
             <BridgeIcon className="w-5 h-5 text-primary-foreground" />
@@ -60,7 +60,7 @@ const Navbar = () => {
                 <span className="text-sm font-bold text-primary">{xp} XP</span>
               </div>
               <Button variant="ghost" asChild>
-                <Link to="/learn">Learn</Link>
+                <Link to="/lessons">Lessons</Link>
               </Button>
               <Button variant="ghost" asChild>
                 <Link to="/profile">Profile</Link>

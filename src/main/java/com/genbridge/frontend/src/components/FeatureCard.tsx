@@ -22,7 +22,7 @@ const FeatureCard = ({ icon: Icon, title, description, color, delay = 0 }: Featu
   const isLoggedIn = !!localStorage.getItem("token");
 
   const handleClick = () => {
-    navigate(isLoggedIn ? "/learn" : "/register");
+    navigate(isLoggedIn ? "/lessons" : "/register");
   };
 
   return (

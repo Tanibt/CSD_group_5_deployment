@@ -14,6 +14,7 @@ import Index from "./pages/Index";
 import Login from "./pages/Login";
 import Register from "./pages/Register";
 import Learn from "./pages/Learn";
+import LessonDetail from "./pages/LessonDetail";
 import Admin from "./pages/Admin";
 import Profile from "./pages/Profile";
 import Settings from "./pages/Settings";
@@ -32,7 +33,7 @@ const PrivateRoute = ({ element }: { element: JSX.Element }) => {
 // Redirects to /learn if already logged in
 const PublicOnlyRoute = ({ element }: { element: JSX.Element }) => {
   return localStorage.getItem("token") ?
-      <Navigate to="/learn" replace />
+      <Navigate to="/lessons" replace />
     : element;
 };
 
@@ -75,7 +76,8 @@ const App = () => (
             path="/register"
             element={<PublicOnlyRoute element={<Register />} />}
           />
-          <Route path="/learn" element={<PrivateRoute element={<Learn />} />} />
+          <Route path="/lessons" element={<PrivateRoute element={<Learn />} />} />
+          <Route path="/lessons/:id" element={<PrivateRoute element={<LessonDetail />} />} />
 
           <Route
             path="/admin"
@@ -84,7 +86,7 @@ const App = () => (
                 element={
                   localStorage.getItem("role") === "ADMIN" ?
                     <Admin />
-                  : <Navigate to="/learn" replace />
+                  : <Navigate to="/lessons" replace />
                 }
               />
             }

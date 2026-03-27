@@ -41,7 +41,7 @@ export default function Admin() {
   const { toast } = useToast();
   const topRef = useRef<HTMLDivElement>(null);
 
-  if (role !== "ADMIN") return <Navigate to="/learn" replace />;
+  if (role !== "ADMIN") return <Navigate to="/lessons" replace />;
 
   const [tab, setTab] = useState<"lessons" | "content" | "quiz">("lessons");
   const [lessons, setLessons] = useState<Lesson[]>([]);

@@ -1,6 +1,6 @@
 import React from "react";
 import { motion } from "framer-motion";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { MessageCircle, BookOpen, Zap, TrendingUp, ArrowRight } from "lucide-react";
 import Navbar from "@/components/Navbar";
@@ -32,6 +32,8 @@ const features = [
 
 const Index = () => {
   const isLoggedIn = !!localStorage.getItem("token");
+  const navigate = useNavigate();
+  const handleFeatureClick = () => navigate(isLoggedIn ? "/lessons" : "/register");
   const heroPanelBg   = "rgba(239,235,225,0.90)";
   const bodyTextColor = "#4A4A4A";
   const startBtnBg    = "#ffffff";
@@ -153,7 +155,7 @@ const Index = () => {
             </p>
           </motion.div>
 
-          <div className="grid sm:grid-cols-2 lg:grid-cols-4">
+          <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-4">
             {features.map((feature, i) => (
               <motion.div
                 key={feature.title}
@@ -161,8 +163,8 @@ const Index = () => {
                 whileInView={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.5, delay: i * 0.1 }}
                 viewport={{ once: true }}
-                className="group p-7 flex flex-col rounded-2xl transition-colors duration-200 cursor-default"
-                style={{ ["--hover-bg" as string]: featureHover }}
+                onClick={handleFeatureClick}
+                className="group p-7 flex flex-col rounded-2xl border border-transparent transition-all duration-200 cursor-pointer hover:border-[#c8bfad]"
                 onMouseEnter={e => (e.currentTarget.style.backgroundColor = featureHover)}
                 onMouseLeave={e => (e.currentTarget.style.backgroundColor = "")}
               >
