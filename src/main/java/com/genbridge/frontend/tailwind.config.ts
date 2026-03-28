@@ -14,9 +14,9 @@ export default {
     },
     extend: {
       fontFamily: {
-        display: ["PT Serif", "serif"],
-        body: ["PT Serif", "serif"],
-        sidebar: ["PT Serif", "serif"],
+        display: ["Geist Sans", "sans-serif"],
+        body: ["Geist Sans", "sans-serif"],
+        sidebar: ["Geist Sans", "sans-serif"],
       },
       colors: {
         border: "hsl(var(--border))",
