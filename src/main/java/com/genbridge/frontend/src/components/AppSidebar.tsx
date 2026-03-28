@@ -29,7 +29,7 @@ const AppSidebar = ({ activePage }: AppSidebarProps) => {
 
   const navItems = [
     { icon: HomeIcon,       label: "Home",     href: "/lessons",  page: "home"     },
-    { icon: DictionaryIcon, label: "Lessons",  href: "/lessons",  page: "learn"    },
+    { icon: DictionaryIcon, label: "Learn",    href: "/lessons",  page: "learn"    },
     { icon: MessageCircle,  label: "Forum",    href: "/forum",    page: "forum"    },
     { icon: Trophy,         label: "Quests",   href: "/quests",   page: "quests"   },
     { icon: AccountIcon,    label: "Profile",  href: "/profile",  page: "profile"  },
