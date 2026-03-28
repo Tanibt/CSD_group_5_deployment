@@ -21,6 +21,7 @@ import {
   Search,
   Flame,
   LogOut,
+  Trophy,
 } from "lucide-react";
 import HomeIcon from "@/assets/icons/home.svg?react";
 import DictionaryIcon from "@/assets/icons/dictionary.svg?react";
@@ -531,6 +532,20 @@ const Learn = () => {
             </button>
           );
         })}
+        <Link
+          to="/forum"
+          className={`flex items-center gap-3 px-4 py-3 rounded-xl font-sidebar text-xl font-semibold transition-colors text-muted-foreground hover:bg-muted hover:text-foreground ${!sidebarExpanded ? "justify-center" : ""}`}
+        >
+          <MessageCircle className="w-6 h-6 shrink-0" />
+          {sidebarExpanded && <span className="whitespace-nowrap">Forum</span>}
+        </Link>
+        <Link
+          to="/quests"
+          className={`flex items-center gap-3 px-4 py-3 rounded-xl font-sidebar text-xl font-semibold transition-colors text-muted-foreground hover:bg-muted hover:text-foreground ${!sidebarExpanded ? "justify-center" : ""}`}
+        >
+          <Trophy className="w-6 h-6 shrink-0" />
+          {sidebarExpanded && <span className="whitespace-nowrap">Quests</span>}
+        </Link>
         <Link
           to="/profile"
           className={`flex items-center gap-3 px-4 py-3 rounded-xl font-sidebar text-xl font-semibold transition-colors text-muted-foreground hover:bg-muted hover:text-foreground ${!sidebarExpanded ? "justify-center" : ""}`}
