@@ -59,18 +59,18 @@ const Navbar = () => {
                 <Star className="w-4 h-4 text-primary" />
                 <span className="text-sm font-bold text-primary">{xp} XP</span>
               </div>
-              <Button variant="ghost" asChild>
+              <Button variant="ghost" asChild style={{ color: "#1a2e1a" }}>
                 <Link to="/lessons">Lessons</Link>
               </Button>
-              <Button variant="ghost" asChild>
+              <Button variant="ghost" asChild style={{ color: "#1a2e1a" }}>
                 <Link to="/profile">Profile</Link>
               </Button>
               {role === "ADMIN" && (
-                <Button variant="ghost" asChild>
+                <Button variant="ghost" asChild style={{ color: "#1a2e1a" }}>
                   <Link to="/admin">Admin</Link>
                 </Button>
               )}
-              <Button variant="ghost" onClick={handleLogout} className="flex items-center gap-2">
+              <Button variant="ghost" onClick={handleLogout} className="flex items-center gap-2" style={{ color: "#1a2e1a" }}>
                 <LogOut className="w-4 h-4" />
                 Log out
               </Button>
