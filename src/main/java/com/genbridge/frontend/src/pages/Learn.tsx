@@ -1,4 +1,4 @@
-import { useState, useMemo, useEffect } from "react";
+import { useState, useMemo, useEffect, useRef } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import { Badge } from "@/components/ui/badge";
@@ -28,6 +28,8 @@ import DictionaryIcon from "@/assets/icons/dictionary.svg?react";
 import AccountIcon from "@/assets/icons/account.svg?react";
 import NoteStackIcon from "@/assets/icons/note_stack.svg?react";
 import BarChartIcon from "@/assets/icons/bar_chart.svg?react";
+import EmojiObjectsIcon from "@/assets/icons/emoji_objects.svg?react";
+import ForumIcon from "@/assets/icons/forum.svg?react";
 import KeepIcon from "@/assets/icons/keep.svg?react";
 import SettingsIcon from "@/assets/icons/settings.svg?react";
 import BridgeIcon from "@/assets/icons/bridge.svg?react";
@@ -426,7 +428,43 @@ const Learn = () => {
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedTag, setSelectedTag] = useState<"All" | "Beginner" | "Intermediate" | "Advanced">("All");
   const [sidebarExpanded, setSidebarExpanded] = useState(true);
-  const [currentPage, setCurrentPage] = useState<"home" | "learn">("home");
+  const [currentPage, setCurrentPage] = useState<"home" | "learn">(
+    () => (sessionStorage.getItem("learn_view") as "home" | "learn") ?? "home"
+  );
+
+  const changePage = (page: "home" | "learn") => {
+    sessionStorage.setItem("learn_view", page);
+    setCurrentPage(page);
+  };
+
+  // Keep a ref so the popstate handler always sees the latest selectedModule
+  const selectedModuleRef = useRef(selectedModule);
+  useEffect(() => { selectedModuleRef.current = selectedModule; }, [selectedModule]);
+
+  // Intercept browser back button to navigate internal views instead of leaving /lessons
+  useEffect(() => {
+    const handlePopState = (e: PopStateEvent) => {
+      const step = (e.state as any)?.learnStep;
+      if (step === 'lesson') {
+        setSelectedLesson(null);
+        setQuiz(null);
+        setShowLesson(false);
+        if ((selectedModuleRef.current?.lessons.length ?? 0) <= 1) setSelectedModule(null);
+      } else if (step === 'module') {
+        setSelectedLesson(null);
+        setQuiz(null);
+        setShowLesson(false);
+        setSelectedModule(null);
+      } else if (window.location.pathname === '/lessons') {
+        // React Router's own /lessons entry — clear everything
+        setSelectedModule(null);
+        setSelectedLesson(null);
+        setShowLesson(false);
+      }
+    };
+    window.addEventListener('popstate', handlePopState);
+    return () => window.removeEventListener('popstate', handlePopState);
+  }, []);
   const [streak] = useState(() => parseInt(localStorage.getItem("gb_streak") ?? "0"));
 
   const dailyTerm = useMemo(() => getDailyTerm(), []);
@@ -461,6 +499,7 @@ const Learn = () => {
   const completedModulesCount = modules.filter((m) => m.lessons.every((l) => completedLessons.has(l.id))).length;
 
   const handleLessonClick = (lesson: Lesson) => {
+    window.history.pushState({ learnStep: 'lesson' }, '', '/lessons');
     const q = generateQuiz(lesson);
     setSelectedLesson(lesson);
     setQuiz(q);
@@ -522,7 +561,7 @@ const Learn = () => {
           return (
             <button
               key={label}
-              onClick={() => { setCurrentPage(page); setSelectedModule(null); setSelectedLesson(null); setShowLesson(false); }}
+              onClick={() => { changePage(page); setSelectedModule(null); setSelectedLesson(null); setShowLesson(false); }}
               className={`flex items-center gap-3 w-full px-4 py-3 rounded-xl font-sidebar text-xl font-semibold transition-colors ${
                 isActive ? "bg-primary/10 text-primary" : "text-muted-foreground hover:bg-muted hover:text-foreground"
               } ${!sidebarExpanded ? "justify-center" : ""}`}
@@ -536,7 +575,7 @@ const Learn = () => {
           to="/forum"
           className={`flex items-center gap-3 px-4 py-3 rounded-xl font-sidebar text-xl font-semibold transition-colors text-muted-foreground hover:bg-muted hover:text-foreground ${!sidebarExpanded ? "justify-center" : ""}`}
         >
-          <MessageCircle className="w-6 h-6 shrink-0" />
+          <ForumIcon className="w-6 h-6 shrink-0" />
           {sidebarExpanded && <span className="whitespace-nowrap">Forum</span>}
         </Link>
         <Link
@@ -603,10 +642,14 @@ const Learn = () => {
         <div className={`flex-1 transition-all duration-300 ${contentML}`}>
           <div className="py-12 px-8 max-w-2xl mx-auto">
             <button
-              onClick={() => { setSelectedLesson(null); setQuiz(null); }}
+              onClick={() => {
+                setSelectedLesson(null); setQuiz(null);
+                if ((selectedModule?.lessons.length ?? 0) <= 1) setSelectedModule(null);
+              }}
               className="flex items-center gap-2 text-muted-foreground hover:text-foreground transition-colors mb-8"
             >
-              <ArrowLeft className="w-4 h-4" /> Back to module
+              <ArrowLeft className="w-4 h-4" />
+              {(selectedModule?.lessons.length ?? 0) > 1 ? "Back to module" : "All modules"}
             </button>
 
             <motion.div
@@ -698,10 +741,14 @@ const Learn = () => {
         <div className={`flex-1 transition-all duration-300 ${contentML}`}>
           <div className="py-12 px-8 max-w-3xl mx-auto">
             <button
-              onClick={() => { setSelectedLesson(null); setShowLesson(false); }}
+              onClick={() => {
+                setSelectedLesson(null); setShowLesson(false);
+                if ((selectedModule?.lessons.length ?? 0) <= 1) setSelectedModule(null);
+              }}
               className="flex items-center gap-2 text-muted-foreground hover:text-foreground transition-colors mb-8"
             >
-              <ArrowLeft className="w-4 h-4" /> Back to module
+              <ArrowLeft className="w-4 h-4" />
+              {(selectedModule?.lessons.length ?? 0) > 1 ? "Back to module" : "All modules"}
             </button>
 
             <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }}>
@@ -896,7 +943,7 @@ const Learn = () => {
                 <p className="text-sm text-muted-foreground">Welcome back — let's keep learning.</p>
               </div>
               <button
-                onClick={() => setCurrentPage("learn")}
+                onClick={() => changePage("learn")}
                 className="btn-3d flex items-center gap-2 bg-primary text-primary-foreground px-4 py-2 rounded-xl text-sm font-semibold hover:bg-primary/90 transition-colors"
               >
                 Continue learning <ChevronRight className="w-5 h-5" />
@@ -1004,7 +1051,7 @@ const Learn = () => {
               className="rounded-2xl border border-primary/20 bg-primary/5 p-6 mb-6"
             >
               <div className="flex items-center gap-2 text-primary mb-3">
-                <Sparkles className="w-4 h-4" />
+                <EmojiObjectsIcon className="w-4 h-4" />
                 <span className="text-base font-bold uppercase tracking-widest">Slang of the Day</span>
               </div>
               <p className="font-display text-3xl font-bold text-foreground mb-2">{dailyTerm.term}</p>
@@ -1017,7 +1064,7 @@ const Learn = () => {
               const Icon = nextModule.icon;
               return (
                 <button
-                  onClick={() => { setCurrentPage("learn"); setSelectedModule(nextModule); }}
+                  onClick={() => { changePage("learn"); window.history.pushState({ learnStep: 'module' }, '', '/lessons'); setSelectedModule(nextModule); }}
                   className="w-full rounded-2xl border border-border bg-card p-5 flex items-center justify-between hover:shadow-md transition-shadow group"
                 >
                   <div className="flex items-center gap-4">
@@ -1099,7 +1146,7 @@ const Learn = () => {
                     initial={{ opacity: 0, y: 16 }}
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ delay: i * 0.08 }}
-                    onClick={() => setSelectedModule(mod)}
+                    onClick={() => { window.history.pushState({ learnStep: 'module' }, '', '/lessons'); setSelectedModule(mod); }}
                     className="rounded-2xl overflow-hidden border border-border bg-card hover:shadow-lg transition-all hover:-translate-y-1 text-left group"
                   >
                     <div className={`${headerColorMap[mod.color]} h-32 flex items-center justify-center relative`}>

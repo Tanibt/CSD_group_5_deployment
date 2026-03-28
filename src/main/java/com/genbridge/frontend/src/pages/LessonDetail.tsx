@@ -285,7 +285,7 @@ const LessonDetail = () => {
       <div className="flex-1 ml-72 pt-12 pb-16 px-8">
         <div className="max-w-3xl mx-auto">
           <button
-            onClick={() => navigate("/lessons")}
+            onClick={() => navigate(-1)}
             className="flex items-center gap-2 text-muted-foreground hover:text-foreground transition-colors mb-8"
           >
             <ArrowLeft className="w-4 h-4" /> All lessons
