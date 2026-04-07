@@ -12,6 +12,7 @@ export default function QuestDetail() {
 
   const [quest, setQuest] = useState<Quest | null>(null);
   const [reflection, setReflection] = useState("");
+  const [submittedReflection, setSubmittedReflection] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState("");
@@ -21,8 +22,13 @@ export default function QuestDetail() {
     setLoading(true);
     setError("");
     try {
-      const data = await questService.getQuestById(id);
+      const [data, completions] = await Promise.all([
+        questService.getQuestById(id),
+        questService.getMyCompletions(),
+      ]);
       setQuest(data);
+      const match = completions.find((c: { questId: number; reflection: string }) => c.questId === Number(id));
+      if (match) setSubmittedReflection(match.reflection);
     } catch {
       setError("Failed to load quest.");
     } finally {
@@ -84,32 +90,47 @@ export default function QuestDetail() {
               </div>
 
               <div className="rounded-xl border p-5 bg-background">
-                <h2 className="font-semibold mb-2">Offline instruction</h2>
+                <h2 className="font-semibold mb-2">Your task</h2>
                 <p className="text-sm text-muted-foreground whitespace-pre-wrap">
-                  {quest.offlineInstruction || "No offline instruction provided yet."}
+                  {quest.instruction || "No instruction provided yet."}
                 </p>
               </div>
 
               {quest.completed ? (
-                <div className="rounded-xl border p-5 bg-green-50 text-green-700">
-                  You have already completed this quest.
+                <div className="rounded-xl border p-5 bg-green-50 space-y-2">
+                  <p className="text-green-700 font-medium">You have completed this quest.</p>
+                  {submittedReflection && (
+                    <div>
+                      <p className="text-sm font-medium text-green-800 mb-1">Your reflection:</p>
+                      <p className="text-sm text-green-900 whitespace-pre-wrap">{submittedReflection}</p>
+                    </div>
+                  )}
                 </div>
               ) : (
                 <div className="space-y-4">
                   <div>
-                    <label className="block text-sm font-medium mb-2">Reflection</label>
+                    <label className="block text-sm font-medium mb-2">
+                      Your reflection
+                      <span className="text-muted-foreground font-normal ml-1">(min. 50 characters)</span>
+                    </label>
+                    <p className="text-xs text-muted-foreground mb-3">
+                      Answer these two questions: <strong>Where and how did you complete this task?</strong> and <strong>How did the other person react, or what did you notice?</strong>
+                    </p>
                     <Textarea
                       value={reflection}
                       onChange={(e) => setReflection(e.target.value)}
-                      placeholder="Write what you did, what you learned, and how the quest went."
-                      className="min-h-[180px]"
+                      placeholder="e.g. I used 'no cap' and 'bussin' while having lunch with my daughter. She laughed and said she couldn't believe I knew those words..."
+                      className="min-h-[160px]"
                     />
+                    <p className={`text-xs mt-1 text-right ${reflection.length >= 50 ? "text-green-600" : "text-muted-foreground"}`}>
+                      {reflection.length} / 50 characters minimum
+                    </p>
                   </div>
 
                   {error && <p className="text-sm text-red-600">{error}</p>}
 
-                  <Button onClick={handleSubmit} disabled={saving}>
-                    {saving ? "Submitting..." : "Submit reflection"}
+                  <Button onClick={handleSubmit} disabled={saving || reflection.trim().length < 50}>
+                    {saving ? "Submitting..." : "Submit reflection (+15 XP)"}
                   </Button>
                 </div>
               )}
