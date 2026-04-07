@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import api from "@/services/api";
 
 export function useUserProgress() {
   const [xp, setXp] = useState(() => parseInt(localStorage.getItem("gb_xp") ?? "0"));
@@ -12,19 +13,29 @@ export function useUserProgress() {
     }
   });
 
+  // Seed from API on mount so XP/streak/completions survive localStorage clears
   useEffect(() => {
-    const today = new Date().toDateString();
-    const last = localStorage.getItem("gb_lastLogin");
-    const yesterday = new Date(Date.now() - 86_400_000).toDateString();
+    api.get("/profile")
+      .then((res) => {
+        const data = res.data;
 
-    if (last !== today) {
-      const newStreak = last === yesterday ? streak + 1 : 1;
-      setStreak(newStreak);
-      localStorage.setItem("gb_streak", String(newStreak));
-      localStorage.setItem("gb_lastLogin", today);
-      window.dispatchEvent(new Event("gb_progress"));
-    }
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+        const apiXp: number = data.xp ?? 0;
+        setXp(apiXp);
+        localStorage.setItem("gb_xp", String(apiXp));
+
+        const apiStreak: number = data.currentStreak ?? 0;
+        setStreak(apiStreak);
+        localStorage.setItem("gb_streak", String(apiStreak));
+
+        const completedIds: Set<string> = new Set(
+          (data.completedLessons ?? []).map((l: { lessonId: number }) => String(l.lessonId))
+        );
+        setCompletedLessons(completedIds);
+        localStorage.setItem("gb_completed", JSON.stringify([...completedIds]));
+      })
+      .catch(() => {
+        // fall back to localStorage values already loaded in useState initialisers
+      });
   }, []);
 
   const completeLesson = (lessonId: string, xpAmt: number): number => {
