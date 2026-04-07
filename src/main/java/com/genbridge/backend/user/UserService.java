@@ -9,6 +9,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDate;
+import com.genbridge.backend.auth.dto.ChangePasswordRequest;
 
 @Service
 public class UserService {
@@ -74,6 +75,17 @@ public class UserService {
         }
 
         user.setLastActiveDate(today);
+        userRepository.save(user);
+    }
+
+    @Transactional
+    public void changePassword(String email, ChangePasswordRequest request) {
+        User user = getByEmail(email);
+        if (!passwordEncoder.matches(request.getOldPassword(), user.getPasswordHash())) {
+            throw new IllegalArgumentException("Old password is incorrect");
+        }
+        String newHash = passwordEncoder.encode(request.getNewPassword());
+        user.setPasswordHash(newHash);
         userRepository.save(user);
     }
 }
