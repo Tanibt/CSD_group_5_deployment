@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
-import { Flame, Star, BookOpen, CheckCircle2, Pencil, Check, X } from "lucide-react";
+import { Flame, Star, BookOpen, CheckCircle2, Pencil, Check, X, Trophy } from "lucide-react";
 import AppSidebar from "@/components/AppSidebar";
 import { useToast } from "@/hooks/use-toast";
 import api from "@/services/api";
@@ -63,28 +63,22 @@ const Profile = () => {
   const [streak, setStreak] = useState(0);
   const [xp, setXp] = useState(0);
   const [completedLessons, setCompletedLessons] = useState<{ id: number; title: string; difficulty: string }[]>([]);
+  const [completedQuests, setCompletedQuests] = useState<{ id: number; title: string; submittedAt: string }[]>([]);
 
   useEffect(() => {
     const fetchStats = async () => {
       try {
-        const [profileRes, progressRes] = await Promise.all([
-          api.get("/profile"),
-          api.get("/progress"),
-        ]);
+        const profileRes = await api.get("/profile");
         setStreak(profileRes.data.currentStreak ?? 0);
-        const completed = (progressRes.data.lessons as { lessonId: number; completed: boolean }[])
-          .filter((p) => p.completed);
-        setXp(completed.length * 10);
-
-        // Fetch lesson details for completed lessons
-        const lessonDetails = await Promise.all(
-          completed.map((p) => api.get(`/lessons/${p.lessonId}`))
+        setXp(profileRes.data.xp ?? 0);
+        setCompletedLessons(
+          (profileRes.data.completedLessons ?? []).map((l: { lessonId: number; title: string; difficulty: string }) => ({
+            id: l.lessonId,
+            title: l.title,
+            difficulty: l.difficulty,
+          }))
         );
-        setCompletedLessons(lessonDetails.map((r) => ({
-          id: r.data.id,
-          title: r.data.title,
-          difficulty: r.data.difficulty,
-        })));
+        setCompletedQuests(profileRes.data.completedQuests ?? []);
       } catch {
         toast({ title: "Error loading profile" });
       }
@@ -298,6 +292,49 @@ const Profile = () => {
                       <span className={`text-xs font-medium px-2.5 py-1 rounded-full border ${DIFFICULTY_COLORS[lesson.difficulty as keyof typeof DIFFICULTY_COLORS] ?? ""}`}>
                         {lesson.difficulty}
                       </span>
+                    </motion.div>
+                  ))}
+                </div>
+              )}
+            </div>
+          </motion.div>
+
+          {/* Completed quests */}
+          <motion.div
+            initial={{ opacity: 0, y: 16 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.15 }}
+            className="mt-6"
+          >
+            <h2 className="font-display text-xl font-bold text-foreground mb-4">
+              Completed Quests
+            </h2>
+
+            <div className="bg-card rounded-2xl border border-border overflow-hidden">
+              {completedQuests.length === 0 ? (
+                <div className="p-12 text-center">
+                  <p className="text-muted-foreground">No quests completed yet.</p>
+                  <p className="text-muted-foreground/60 text-sm mt-1">Head to Quests to get started!</p>
+                </div>
+              ) : (
+                <div className="divide-y divide-border">
+                  {completedQuests.map((quest, i) => (
+                    <motion.div
+                      key={quest.id}
+                      initial={{ opacity: 0 }}
+                      animate={{ opacity: 1 }}
+                      transition={{ delay: 0.17 + i * 0.04 }}
+                      className="flex items-center gap-4 px-6 py-4"
+                    >
+                      <Trophy className="w-5 h-5 text-primary shrink-0" />
+                      <div className="flex-1 min-w-0">
+                        <p className="font-medium text-card-foreground text-sm">{quest.title}</p>
+                        {quest.submittedAt && (
+                          <p className="text-xs text-muted-foreground mt-0.5">
+                            {new Date(quest.submittedAt).toLocaleDateString()}
+                          </p>
+                        )}
+                      </div>
                     </motion.div>
                   ))}
                 </div>

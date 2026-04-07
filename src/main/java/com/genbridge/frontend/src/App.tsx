@@ -20,7 +20,8 @@ import Profile from "./pages/Profile";
 import Settings from "./pages/Settings";
 import NotFound from "./pages/NotFound";
 import { ThemeProvider } from "./context/ThemeContext";
-
+import Quests from "./pages/Quests";
+import QuestDetail from "./pages/QuestDetail";
 const queryClient = new QueryClient();
 
 // Redirects to /login if no token
@@ -103,8 +104,8 @@ const App = () => (
 
           <Route path="/forum" element={<PrivateRoute element={<div>Forum coming soon</div>} />} />
           <Route path="/forum/:id" element={<PrivateRoute element={<div>Post detail coming soon</div>} />} />
-          <Route path="/quests" element={<PrivateRoute element={<div>Quests coming soon</div>} />} />
-          <Route path="/quests/:id" element={<PrivateRoute element={<div>Quest detail coming soon</div>} />} />
+          <Route path="/quests" element={<PrivateRoute element={<Quests />} />} />
+<Route path="/quests/:id" element={<PrivateRoute element={<QuestDetail />} />} />
           <Route path="/profile" element={<PrivateRoute element={<Profile />} />} />
           <Route path="/settings" element={<PrivateRoute element={<Settings />} />} />
           <Route path="*" element={<NotFound />} />

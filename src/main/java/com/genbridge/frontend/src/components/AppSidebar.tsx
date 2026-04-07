@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { Flame, Star, LogOut, Trophy } from "lucide-react";
 import BridgeIcon from "@/assets/icons/bridge.svg?react";
@@ -8,7 +8,7 @@ import DictionaryIcon from "@/assets/icons/dictionary.svg?react";
 import AccountIcon from "@/assets/icons/account.svg?react";
 import KeepIcon from "@/assets/icons/keep.svg?react";
 import SettingsIcon from "@/assets/icons/settings.svg?react";
-import { useUserProgress } from "@/hooks/useUserProgress";
+import api from "@/services/api";
 
 interface AppSidebarProps {
   activePage: "home" | "learn" | "forum" | "quests" | "profile" | "settings";
@@ -17,8 +17,15 @@ interface AppSidebarProps {
 const AppSidebar = ({ activePage }: AppSidebarProps) => {
   const [expanded, setExpanded] = useState(true);
   const navigate = useNavigate();
-  const { xp } = useUserProgress();
-  const streak = parseInt(localStorage.getItem("gb_streak") ?? "0");
+  const [streak, setStreak] = useState(0);
+  const [xp, setXp] = useState(0);
+
+  useEffect(() => {
+    api.get("/profile").then((res) => {
+      setStreak(res.data.currentStreak ?? 0);
+      setXp(res.data.xp ?? 0);
+    }).catch(() => {});
+  }, []);
 
   const handleLogout = () => {
     localStorage.removeItem("token");

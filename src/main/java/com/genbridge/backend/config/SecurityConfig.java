@@ -30,6 +30,7 @@ public class SecurityConfig {
             .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
             .authorizeHttpRequests(auth -> auth
                 // Public endpoints — no token needed
+                .requestMatchers(HttpMethod.PUT, "/api/auth/change-password").authenticated()
                 .requestMatchers("/api/auth/**").permitAll()
                 .requestMatchers("/api/health/**").permitAll()
                 .requestMatchers("/error").permitAll()
@@ -60,6 +61,18 @@ public class SecurityConfig {
                 .requestMatchers(HttpMethod.PUT, "/api/lessons/{id}/quiz/{questionId}").hasRole("ADMIN")
                 .requestMatchers(HttpMethod.DELETE, "/api/lessons/{id}/quiz/{questionId}").hasRole("ADMIN")
                 .requestMatchers(HttpMethod.POST, "/api/lessons/{id}/report").authenticated()
+
+                // Quest endpoints - authenticated learners
+.requestMatchers(HttpMethod.GET, "/api/quests").authenticated()
+.requestMatchers(HttpMethod.GET, "/api/quests/*").authenticated()
+.requestMatchers(HttpMethod.GET, "/api/quests/completions").authenticated()
+.requestMatchers(HttpMethod.POST, "/api/quests/*/complete").authenticated()
+
+// Admin quest management
+.requestMatchers(HttpMethod.GET, "/api/admin/quests").hasRole("ADMIN")
+.requestMatchers(HttpMethod.POST, "/api/quests").hasRole("ADMIN")
+.requestMatchers(HttpMethod.PUT, "/api/quests/*").hasRole("ADMIN")
+.requestMatchers(HttpMethod.DELETE, "/api/quests/*").hasRole("ADMIN")
 
                 // All other endpoints require any authenticated user
                 .anyRequest().authenticated()
