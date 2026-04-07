@@ -36,6 +36,7 @@ Thumbs.db
 # Uncomment these lines to keep credentials private
 # src/main/resources/application.properties
 # src/main/resources/application-*.properties
+src/main/resources/application-dev.properties
 
 # Environment variables
 .env
