@@ -6,6 +6,7 @@ import { Label } from "@/components/ui/label";
 import AuthLayout from "@/components/AuthLayout";
 import { Eye, EyeOff } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
+import api from "@/services/api"; // ✅ ADDED
 
 const Register = () => {
   const [name, setName] = useState("");
@@ -20,30 +21,51 @@ const Register = () => {
     e.preventDefault();
     setLoading(true);
     try {
-      const res = await fetch("/api/auth/register", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ name, email, password }),
+      const res = await api.post("/auth/register", {
+        // ✅ CHANGED
+        name,
+        email,
+        password,
       });
-      const data = await res.text();
-      if (res.ok) {
-        toast({ title: "Account created!", description: "You can now log in." });
+
+      if (res.status === 200 || res.status === 201) {
+        // ✅ adjusted for axios
+        toast({
+          title: "Account created!",
+          description: "You can now log in.",
+        });
         navigate("/login");
       } else {
-        toast({ title: "Registration failed", description: data, variant: "destructive" });
+        toast({
+          title: "Registration failed",
+          description: res.data,
+          variant: "destructive",
+        });
       }
-    } catch {
-      toast({ title: "Error", description: "Could not reach the server.", variant: "destructive" });
+    } catch (err: any) {
+      toast({
+        title: "Error",
+        description: err.response?.data || "Could not reach the server.",
+        variant: "destructive",
+      });
     } finally {
       setLoading(false);
     }
   };
 
   return (
-    <AuthLayout title="Create your account" subtitle="Start your Gen Alpha learning journey today.">
+    <AuthLayout
+      title="Create your account"
+      subtitle="Start your Gen Alpha learning journey today."
+    >
       <form onSubmit={handleSubmit} className="space-y-6">
         <div className="space-y-2">
-          <Label htmlFor="name" className="text-sm font-semibold text-foreground">Full name</Label>
+          <Label
+            htmlFor="name"
+            className="text-sm font-semibold text-foreground"
+          >
+            Full name
+          </Label>
           <Input
             id="name"
             type="text"
@@ -56,7 +78,12 @@ const Register = () => {
         </div>
 
         <div className="space-y-2">
-          <Label htmlFor="email" className="text-sm font-semibold text-foreground">Email</Label>
+          <Label
+            htmlFor="email"
+            className="text-sm font-semibold text-foreground"
+          >
+            Email
+          </Label>
           <Input
             id="email"
             type="email"
@@ -69,7 +96,12 @@ const Register = () => {
         </div>
 
         <div className="space-y-2">
-          <Label htmlFor="password" className="text-sm font-semibold text-foreground">Password</Label>
+          <Label
+            htmlFor="password"
+            className="text-sm font-semibold text-foreground"
+          >
+            Password
+          </Label>
           <div className="relative">
             <Input
               id="password"
@@ -86,7 +118,9 @@ const Register = () => {
               onClick={() => setShowPassword(!showPassword)}
               className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors"
             >
-              {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+              {showPassword ?
+                <EyeOff className="w-4 h-4" />
+              : <Eye className="w-4 h-4" />}
             </button>
           </div>
         </div>
@@ -103,7 +137,10 @@ const Register = () => {
 
         <p className="text-center text-sm text-muted-foreground">
           Already have an account?{" "}
-          <Link to="/login" className="text-primary font-medium hover:underline">
+          <Link
+            to="/login"
+            className="text-primary font-medium hover:underline"
+          >
             Log in
           </Link>
         </p>
