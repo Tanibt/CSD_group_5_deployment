@@ -15,10 +15,10 @@ public class CorsConfig implements WebMvcConfigurer {
     public void addCorsMappings(CorsRegistry registry) {
         registry.addMapping("/api/**")
                 .allowedOrigins(
-                    "http://localhost:3000",      // React dev server
-                    "http://localhost:5173",      // Vite dev server
-                    "http://localhost:5174",      // Vite dev server (fallback port)
-                    "https://your-production-url.com"  // TODO: Add production URL
+                        "http://localhost:3000", // React dev server
+                        "http://localhost:5173", // Vite dev server
+                        "http://localhost:5174", // Vite dev server (fallback port)
+                        "https://csd-group-5-deployment.vercel.app" // TODO: Add production URL
                 )
                 .allowedMethods("GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS")
                 .allowedHeaders("*")

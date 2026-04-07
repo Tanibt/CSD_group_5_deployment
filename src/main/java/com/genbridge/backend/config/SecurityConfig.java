@@ -1,5 +1,7 @@
 package com.genbridge.backend.config;
 
+import java.util.List;
+
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpMethod;
@@ -11,6 +13,11 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
+
+// ✅ ADD THESE IMPORTS
+import org.springframework.web.cors.CorsConfiguration;
+import org.springframework.web.cors.CorsConfigurationSource;
+import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 
 @Configuration
 @EnableWebSecurity
@@ -25,61 +32,75 @@ public class SecurityConfig {
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http
-            .cors(Customizer.withDefaults())
-            .csrf(csrf -> csrf.disable())
-            .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
-            .authorizeHttpRequests(auth -> auth
-                // Public endpoints — no token needed
-                .requestMatchers(HttpMethod.PUT, "/api/auth/change-password").authenticated()
-                .requestMatchers("/api/auth/**").permitAll()
-                .requestMatchers("/api/health/**").permitAll()
-                .requestMatchers("/error").permitAll()
-                .requestMatchers("/swagger-ui/**", "/v3/api-docs/**", "/api-docs/**", "/swagger-ui.html").permitAll()
+                .cors(Customizer.withDefaults()) // ✅ KEEP THIS
+                .csrf(csrf -> csrf.disable())
+                .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
+                .authorizeHttpRequests(auth -> auth
 
-                // Admin-only content management
-                .requestMatchers(HttpMethod.POST, "/api/content").hasRole("ADMIN")
-                .requestMatchers(HttpMethod.PUT, "/api/content/*").hasRole("ADMIN")
-                .requestMatchers(HttpMethod.DELETE, "/api/content/*").hasRole("ADMIN")
+                        // Public endpoints
+                        .requestMatchers(HttpMethod.PUT, "/api/auth/change-password").authenticated()
+                        .requestMatchers("/api/auth/**").permitAll()
+                        .requestMatchers("/api/health/**").permitAll()
+                        .requestMatchers("/error").permitAll()
+                        .requestMatchers("/swagger-ui/**", "/v3/api-docs/**", "/api-docs/**", "/swagger-ui.html")
+                        .permitAll()
 
-                // Public lesson endpoints — no token needed
-                .requestMatchers(HttpMethod.GET, "/api/lessons").permitAll()
-                .requestMatchers(HttpMethod.GET, "/api/lessons/{id}").permitAll()
+                        // Admin content
+                        .requestMatchers(HttpMethod.POST, "/api/content").hasRole("ADMIN")
+                        .requestMatchers(HttpMethod.PUT, "/api/content/*").hasRole("ADMIN")
+                        .requestMatchers(HttpMethod.DELETE, "/api/content/*").hasRole("ADMIN")
 
-                // Learner: authenticated access to nested lesson endpoints
-                .requestMatchers(HttpMethod.GET, "/api/lessons/{id}/quiz").authenticated()
-                .requestMatchers(HttpMethod.POST, "/api/lessons/{id}/start").authenticated()
-                .requestMatchers(HttpMethod.POST, "/api/lessons/{id}/quiz/submit").authenticated()
-                .requestMatchers(HttpMethod.GET, "/api/content/lesson/{lessonId}").authenticated()
-                .requestMatchers(HttpMethod.GET, "/api/progress").authenticated()
+                        // Lessons
+                        .requestMatchers(HttpMethod.GET, "/api/lessons").permitAll()
+                        .requestMatchers(HttpMethod.GET, "/api/lessons/{id}").permitAll()
 
-                // Admin-only lesson management
-                .requestMatchers("/api/admin/**").hasRole("ADMIN")
-                .requestMatchers(HttpMethod.POST, "/api/lessons").hasRole("ADMIN")
-                .requestMatchers(HttpMethod.PUT, "/api/lessons/{id}").hasRole("ADMIN")
-                .requestMatchers(HttpMethod.DELETE, "/api/lessons/{id}").hasRole("ADMIN")
-                .requestMatchers(HttpMethod.POST, "/api/lessons/{id}/quiz").hasRole("ADMIN")
-                .requestMatchers(HttpMethod.PUT, "/api/lessons/{id}/quiz/{questionId}").hasRole("ADMIN")
-                .requestMatchers(HttpMethod.DELETE, "/api/lessons/{id}/quiz/{questionId}").hasRole("ADMIN")
-                .requestMatchers(HttpMethod.POST, "/api/lessons/{id}/report").authenticated()
+                        .requestMatchers(HttpMethod.GET, "/api/lessons/{id}/quiz").authenticated()
+                        .requestMatchers(HttpMethod.POST, "/api/lessons/{id}/start").authenticated()
+                        .requestMatchers(HttpMethod.POST, "/api/lessons/{id}/quiz/submit").authenticated()
+                        .requestMatchers(HttpMethod.GET, "/api/content/lesson/{lessonId}").authenticated()
+                        .requestMatchers(HttpMethod.GET, "/api/progress").authenticated()
 
-                // Quest endpoints - authenticated learners
-.requestMatchers(HttpMethod.GET, "/api/quests").authenticated()
-.requestMatchers(HttpMethod.GET, "/api/quests/*").authenticated()
-.requestMatchers(HttpMethod.GET, "/api/quests/completions").authenticated()
-.requestMatchers(HttpMethod.POST, "/api/quests/*/complete").authenticated()
+                        // Admin lesson management
+                        .requestMatchers("/api/admin/**").hasRole("ADMIN")
+                        .requestMatchers(HttpMethod.POST, "/api/lessons").hasRole("ADMIN")
+                        .requestMatchers(HttpMethod.PUT, "/api/lessons/{id}").hasRole("ADMIN")
+                        .requestMatchers(HttpMethod.DELETE, "/api/lessons/{id}").hasRole("ADMIN")
 
-// Admin quest management
-.requestMatchers(HttpMethod.GET, "/api/admin/quests").hasRole("ADMIN")
-.requestMatchers(HttpMethod.POST, "/api/quests").hasRole("ADMIN")
-.requestMatchers(HttpMethod.PUT, "/api/quests/*").hasRole("ADMIN")
-.requestMatchers(HttpMethod.DELETE, "/api/quests/*").hasRole("ADMIN")
+                        // Quest endpoints
+                        .requestMatchers(HttpMethod.GET, "/api/quests").authenticated()
+                        .requestMatchers(HttpMethod.GET, "/api/quests/*").authenticated()
+                        .requestMatchers(HttpMethod.GET, "/api/quests/completions").authenticated()
+                        .requestMatchers(HttpMethod.POST, "/api/quests/*/complete").authenticated()
 
-                // All other endpoints require any authenticated user
-                .anyRequest().authenticated()
-            )
-            .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class);
+                        // Admin quests
+                        .requestMatchers(HttpMethod.GET, "/api/admin/quests").hasRole("ADMIN")
+                        .requestMatchers(HttpMethod.POST, "/api/quests").hasRole("ADMIN")
+                        .requestMatchers(HttpMethod.PUT, "/api/quests/*").hasRole("ADMIN")
+                        .requestMatchers(HttpMethod.DELETE, "/api/quests/*").hasRole("ADMIN")
+
+                        .anyRequest().authenticated())
+                .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class);
 
         return http.build();
+    }
+
+    // ✅ ADD THIS (CORS FIX)
+    @Bean
+    public CorsConfigurationSource corsConfigurationSource() {
+        CorsConfiguration config = new CorsConfiguration();
+
+        config.setAllowedOrigins(List.of(
+                "http://localhost:5173",
+                "https://csd-group-5-deployment.vercel.app"));
+
+        config.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"));
+        config.setAllowedHeaders(List.of("*"));
+        config.setAllowCredentials(true);
+
+        UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
+        source.registerCorsConfiguration("/**", config);
+
+        return source;
     }
 
     @Bean
