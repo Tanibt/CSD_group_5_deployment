@@ -59,9 +59,12 @@ await api.put("/auth/change-password", {
         confirmNewPassword: ""
       });
     } catch (error: any) {
+      const errorMsg = typeof error.response?.data === "string"
+        ? error.response.data
+        : error.response?.data?.message || "Something went wrong.";
       toast({
         title: "Failed to change password",
-description: error.response?.data?.message || error.response?.data || "Something went wrong.",
+        description: errorMsg,
         variant: "destructive"
       });
     } finally {
@@ -163,12 +166,16 @@ description: error.response?.data?.message || error.response?.data || "Something
                   <Input
                     id="new-password"
                     type={showPasswords.new ? "text" : "password"}
-                    placeholder="Enter new password (min 8 chars)"
+                    placeholder="Enter new password (minimum 8 characters)"
                     value={formData.newPassword}
                     onChange={(e) => setFormData({ ...formData, newPassword: e.target.value })}
+                    minLength={8}
                     className="pr-10"
                     required
                   />
+                  {formData.newPassword.length > 0 && formData.newPassword.length < 8 && (
+                    <p className="text-xs text-red-500 mt-1">Password must be at least 8 characters</p>
+                  )}
                   <Button
                     type="button"
                     variant="ghost"
@@ -211,7 +218,10 @@ description: error.response?.data?.message || error.response?.data || "Something
                   </Button>
                 </div>
               </div>
-              <Button className="w-full" disabled={loading}>
+              <Button
+                className="w-full"
+                disabled={loading || formData.newPassword.length < 8 || !formData.oldPassword || !formData.confirmNewPassword}
+              >
                 {loading ? "Changing..." : "Change Password"}
               </Button>
             </form>
