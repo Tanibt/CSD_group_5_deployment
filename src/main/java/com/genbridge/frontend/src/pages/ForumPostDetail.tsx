@@ -54,8 +54,10 @@ const ForumPostDetail = () => {
       await api.post(`/forum/posts/${id}/comments`, { body: commentBody });
       setCommentBody("");
       fetchPost();
-    } catch {
-      toast({ title: "Failed to post comment", variant: "destructive" });
+    } catch (error: any) {
+      const data = error?.response?.data;
+      const msg = typeof data === "string" ? data : data?.message || "Failed to post comment";
+      toast({ title: msg, variant: "destructive" });
     } finally {
       setSubmitting(false);
     }

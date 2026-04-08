@@ -51,8 +51,10 @@ const Forum = () => {
       setModalOpen(false);
       setForm({ title: "", body: "" });
       fetchPosts();
-    } catch {
-      toast({ title: "Failed to create post", variant: "destructive" });
+    } catch (error: any) {
+      const data = error?.response?.data;
+      const msg = typeof data === "string" ? data : data?.message || "Failed to create post";
+      toast({ title: msg, variant: "destructive" });
     } finally {
       setSaving(false);
     }
