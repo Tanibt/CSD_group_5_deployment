@@ -8,8 +8,8 @@ import AbcIcon from "@/assets/icons/abc.svg?react";
 import KeepIcon from "@/assets/icons/keep.svg?react";
 
 interface AdminSidebarProps {
-  activeTab: "lessons" | "content" | "quiz" | "reports" | "forum";
-  onTabChange: (tab: "lessons" | "content" | "quiz" | "reports" | "forum") => void;
+  activeTab: "lessons" | "content" | "quiz" | "reports" | "forum" | "quests";
+  onTabChange: (tab: "lessons" | "content" | "quiz" | "reports" | "forum" | "quests") => void;
 }
 
 const AdminSidebar = ({ activeTab, onTabChange }: AdminSidebarProps) => {
@@ -30,6 +30,7 @@ const AdminSidebar = ({ activeTab, onTabChange }: AdminSidebarProps) => {
     { icon: AbcIcon,         label: "Quiz",             tab: "quiz"    as const },
     { icon: Flag,            label: "Reports",          tab: "reports" as const },
     { icon: MessageCircle,   label: "Forum Moderation", tab: "forum"   as const },
+    { icon: KeepIcon,        label: "Quests",           tab: "quests"  as const },
   ];
 
   return (

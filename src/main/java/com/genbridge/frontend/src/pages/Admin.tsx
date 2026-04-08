@@ -34,6 +34,14 @@ interface ContentTerm {
   orderIndex: number;
 }
 
+interface Quest {
+  id: number;
+  title: string;
+  description: string;
+  instruction: string;
+  published: boolean;
+}
+
 const difficultyOptions = ["Beginner", "Intermediate", "Advanced"];
 
 export default function Admin() {
@@ -43,7 +51,7 @@ export default function Admin() {
 
   if (role !== "ADMIN") return <Navigate to="/lessons" replace />;
 
-  const [tab, setTab] = useState<"lessons" | "content" | "quiz" | "reports" | "forum">("lessons");
+  const [tab, setTab] = useState<"lessons" | "content" | "quiz" | "reports" | "forum" | "quests">("lessons");
   const [lessons, setLessons] = useState<Lesson[]>([]);
   const [loadingLessons, setLoadingLessons] = useState(true);
 
@@ -105,6 +113,16 @@ export default function Admin() {
   const [loadingReports, setLoadingReports] = useState(false);
   // =================================================
 
+  // ================= QUESTS STATE =================
+  const [quests, setQuests] = useState<Quest[]>([]);
+  const [loadingQuests, setLoadingQuests] = useState(false);
+  const [questModalOpen, setQuestModalOpen] = useState(false);
+  const [editingQuest, setEditingQuest] = useState<Quest | null>(null);
+  const [savingQuest, setSavingQuest] = useState(false);
+  const emptyQuestForm = { title: "", description: "", instruction: "", published: false };
+  const [questForm, setQuestForm] = useState(emptyQuestForm);
+  // =================================================
+
   // Scroll to top when tab changes
   useEffect(() => {
     topRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -118,6 +136,9 @@ export default function Admin() {
     }
     if (tab === "reports") {
       loadReports();
+    }
+    if (tab === "quests") {
+      loadQuests();
     }
   }, [tab]);
 
@@ -188,6 +209,62 @@ export default function Admin() {
     }
   };
   // =================================================
+
+  // ================= QUESTS CRUD =================
+  const loadQuests = async () => {
+    setLoadingQuests(true);
+    try {
+      const res = await api.get("/admin/quests");
+      setQuests(res.data);
+    } catch {
+      toast({ title: "Error loading quests" });
+    } finally {
+      setLoadingQuests(false);
+    }
+  };
+
+  const saveQuest = async () => {
+    if (!questForm.title.trim()) { toast({ title: "Title required" }); return; }
+    if (!questForm.instruction.trim()) { toast({ title: "Instruction required" }); return; }
+    setSavingQuest(true);
+    try {
+      if (editingQuest) {
+        await api.put(`/quests/${editingQuest.id}`, questForm);
+      } else {
+        await api.post("/quests", questForm);
+      }
+      toast({ title: "Quest saved" });
+      setQuestModalOpen(false);
+      setEditingQuest(null);
+      setQuestForm(emptyQuestForm);
+      loadQuests();
+    } catch {
+      toast({ title: "Error saving quest" });
+    } finally {
+      setSavingQuest(false);
+    }
+  };
+
+  const deleteQuest = async (id: number) => {
+    try {
+      await api.delete(`/quests/${id}`);
+      toast({ title: "Quest deleted" });
+      loadQuests();
+    } catch {
+      toast({ title: "Error deleting quest" });
+    }
+  };
+
+  const toggleQuestPublish = async (quest: Quest) => {
+    try {
+      await api.put(`/quests/${quest.id}`, { title: quest.title, description: quest.description, instruction: quest.instruction, published: !quest.published });
+      toast({ title: "Quest updated" });
+      loadQuests();
+    } catch {
+      toast({ title: "Error updating quest" });
+    }
+  };
+  // ================================================
 
   // Validate lesson
   const validateLesson = () => {
@@ -349,7 +426,7 @@ export default function Admin() {
       <div className="flex-1 ml-72 pt-12 pb-16 px-8">
         <div className="max-w-5xl mx-auto">
           <h1 className="font-display text-3xl font-bold text-foreground mb-8">
-            {tab === "lessons" ? "Lessons" : tab === "content" ? "Content" : tab === "quiz" ? "Quiz" : tab === "reports" ? "Reports" : "Forum Moderation"}
+            {tab === "lessons" ? "Lessons" : tab === "content" ? "Content" : tab === "quiz" ? "Quiz" : tab === "reports" ? "Reports" : tab === "quests" ? "Quests" : "Forum Moderation"}
           </h1>
 
           {/* LESSONS TAB */}
@@ -479,7 +556,6 @@ export default function Admin() {
                     onClick={() => {
                       setEditingContent(null);
                       setContentForm({
-                        title: "",
                         term: "",
                         description: "",
                         example: "",
@@ -909,6 +985,68 @@ export default function Admin() {
               </div>
             </DialogContent>
           </Dialog>
+          {/* QUESTS TAB */}
+          {tab === "quests" && (
+            <>
+              <Button className="mb-6" onClick={() => { setEditingQuest(null); setQuestForm(emptyQuestForm); setQuestModalOpen(true); }}>
+                + Create Quest
+              </Button>
+
+              {loadingQuests ? (
+                <p>Loading quests...</p>
+              ) : quests.length === 0 ? (
+                <p className="text-muted-foreground">No quests yet.</p>
+              ) : (
+                <div className="space-y-4">
+                  {quests.map((quest) => (
+                    <motion.div key={quest.id} whileHover={{ scale: 1.01 }} className="border rounded-xl p-6 bg-card shadow-sm">
+                      <div className="flex justify-between items-center mb-2">
+                        <h2 className="font-semibold">{quest.title}</h2>
+                        <Badge className={quest.published ? "bg-green-100 text-green-700" : "bg-yellow-100 text-yellow-700"}>
+                          {quest.published ? "Published" : "Draft"}
+                        </Badge>
+                      </div>
+                      <p className="text-sm text-muted-foreground mb-1">{quest.description}</p>
+                      <p className="text-xs text-muted-foreground mb-4 italic">{quest.instruction}</p>
+                      <div className="flex flex-wrap gap-3">
+                        <Button size="sm" onClick={() => { setEditingQuest(quest); setQuestForm({ title: quest.title, description: quest.description, instruction: quest.instruction, published: quest.published }); setQuestModalOpen(true); }}>
+                          Edit
+                        </Button>
+                        <Button size="sm" onClick={() => toggleQuestPublish(quest)}>
+                          {quest.published ? "Unpublish" : "Publish"}
+                        </Button>
+                        <Button size="sm" variant="destructive" onClick={() => deleteQuest(quest.id)}>
+                          Delete
+                        </Button>
+                      </div>
+                    </motion.div>
+                  ))}
+                </div>
+              )}
+
+              {/* Quest Modal */}
+              <Dialog open={questModalOpen} onOpenChange={setQuestModalOpen}>
+                <DialogContent>
+                  <DialogHeader>
+                    <DialogTitle>{editingQuest ? "Edit Quest" : "Create Quest"}</DialogTitle>
+                  </DialogHeader>
+                  <div className="space-y-4 mt-4">
+                    <Input placeholder="Title" value={questForm.title} onChange={(e) => setQuestForm({ ...questForm, title: e.target.value })} />
+                    <Textarea placeholder="Description (shown on the quest card)" value={questForm.description} onChange={(e) => setQuestForm({ ...questForm, description: e.target.value })} />
+                    <Textarea placeholder="Instruction (what the learner must do offline)" value={questForm.instruction} onChange={(e) => setQuestForm({ ...questForm, instruction: e.target.value })} rows={4} />
+                    <label className="flex items-center gap-2 text-sm cursor-pointer">
+                      <input type="checkbox" checked={questForm.published} onChange={(e) => setQuestForm({ ...questForm, published: e.target.checked })} />
+                      Publish immediately
+                    </label>
+                    <Button onClick={saveQuest} disabled={savingQuest} className="w-full">
+                      {savingQuest ? "Saving..." : "Save"}
+                    </Button>
+                  </div>
+                </DialogContent>
+              </Dialog>
+            </>
+          )}
+
           {/* FORUM MODERATION TAB */}
           {tab === "forum" && <ForumModerationTab toast={toast} />}
 
