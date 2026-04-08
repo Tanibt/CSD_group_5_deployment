@@ -33,6 +33,13 @@ const PrivateRoute = ({ element }: { element: JSX.Element }) => {
     );
 };
 
+// Admin-only route — redirects to /lessons if not admin
+const AdminRoute = () => {
+  if (!localStorage.getItem("token")) return <Navigate to="/login" replace />;
+  if (localStorage.getItem("role") !== "ADMIN") return <Navigate to="/lessons" replace />;
+  return <Admin />;
+};
+
 // Redirects to /admin or /lessons if already logged in
 const PublicOnlyRoute = ({ element }: { element: JSX.Element }) => {
   if (!localStorage.getItem("token")) return element;
@@ -91,18 +98,7 @@ const App = () => (
           <Route path="/lessons" element={<PrivateRoute element={<Learn />} />} />
           <Route path="/lessons/:id" element={<PrivateRoute element={<LessonDetail />} />} />
 
-          <Route
-            path="/admin"
-            element={
-              <PrivateRoute
-                element={
-                  localStorage.getItem("role") === "ADMIN" ?
-                    <Admin />
-                  : <Navigate to="/lessons" replace />
-                }
-              />
-            }
-          />
+          <Route path="/admin" element={<AdminRoute />} />
 
           <Route path="/forum" element={<PrivateRoute element={<Forum />} />} />
           <Route path="/forum/:id" element={<PrivateRoute element={<ForumPostDetail />} />} />
