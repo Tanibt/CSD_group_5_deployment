@@ -29,7 +29,7 @@ const Login = () => {
         localStorage.setItem("token", data.token);
         localStorage.setItem("role", data.role);
         toast({ title: "Welcome back!", description: "Login successful." });
-        navigate(data.role === "ADMIN" ? "/admin" : "/lessons");
+        navigate(data.role === "ADMIN" ? "/admin" : "/");
       } else {
         const msg = await res.text();
         toast({ title: "Login failed", description: msg, variant: "destructive" });
