@@ -83,6 +83,8 @@ public class ProfileController {
         profile.put("completedQuestsCount", completedQuests.size());
         profile.put("completedQuests", completedQuests);
         profile.put("xp", xp);
+        profile.put("isSuspended", user.isSuspended());
+        profile.put("suspensionReason", user.getSuspensionReason());
 
         return ResponseEntity.ok(profile);
     }
